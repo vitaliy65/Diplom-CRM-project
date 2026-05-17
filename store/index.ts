@@ -1,8 +1,10 @@
-import { configureStore } from "@reduxjs/toolkit"
-import authReducer from "@/store/slices/auth-slice"
-import ticketsReducer from "@/store/slices/tickets-slice"
-import clientsReducer from "@/store/slices/clients-slice"
-import usersReducer from "@/store/slices/users-slice"
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "@/store/slices/auth-slice";
+import ticketsReducer from "@/store/slices/tickets-slice";
+import clientsReducer from "@/store/slices/clients-slice";
+import usersReducer from "@/store/slices/users-slice";
+import selectedTicketReducer from "@/store/slices/selected-ticket-slice";
+import { viewReducer } from "@/store/slices/view-slice";
 
 export const store = configureStore({
   reducer: {
@@ -10,8 +12,10 @@ export const store = configureStore({
     tickets: ticketsReducer,
     clients: clientsReducer,
     users: usersReducer,
+    selectedTicket: selectedTicketReducer,
+    view: viewReducer,
   },
-})
+});
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

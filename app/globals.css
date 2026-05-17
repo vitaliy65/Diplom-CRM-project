@@ -141,6 +141,11 @@
     border: 1px solid var(--glass-border);
   }
 
+  .glass-original {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
   .glass-subtle {
     background: oklch(0.12 0.008 270 / 0.5);
     backdrop-filter: blur(12px);

@@ -1,9 +1,11 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
 import { Clock, Monitor, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Ticket } from "@/lib/types";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setSelectedTicketId } from "@/store/slices/selected-ticket-slice";
 
 export function TicketCard({
   ticket,
@@ -13,10 +15,13 @@ export function TicketCard({
   index: number;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const selectedTicketId = useAppSelector((s) => s.selectedTicket.id);
+  const dispatch = useAppDispatch();
 
   return (
     <motion.div
       layout
+      key={ticket.id}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
@@ -24,28 +29,14 @@ export function TicketCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "group relative cursor-pointer rounded-xl border border-border/50 bg-card/80 p-3 md:p-4 backdrop-blur-sm    ",
+        "group relative cursor-pointer",
         isHovered && "border-primary/30 shadow-lg shadow-primary/5",
         ticket.slaViolation && "border-l-2 border-l-glow-red",
       )}
       whileHover={{ y: -2 }}
     >
-      {/* SLA Warning Glow */}
-      {ticket.slaViolation && (
-        <motion.div
-          className="absolute -right-1 -top-1"
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-glow-red opacity-75" />
-            <span className="relative inline-flex h-2.5 w-2.5 md:h-3 md:w-3 rounded-full bg-glow-red" />
-          </span>
-        </motion.div>
-      )}
-
       {/* Card Content */}
-      <div className="space-y-2 md:space-y-3">
+      <div className="space-y-2 md:space-y-3 rounded-xl border border-border/50 bg-card/80 p-3 md:p-4 backdrop-blur-3xl">
         {/* Header */}
         <div className="flex items-start justify-between">
           <span className="font-mono text-[10px] md:text-xs text-muted-foreground">
@@ -104,6 +95,42 @@ export function TicketCard({
           </div>
         </div>
       </div>
+      <AnimatePresence mode="wait">
+        {selectedTicketId && ticket.id === selectedTicketId && (
+          <>
+            <motion.div
+              key={"selected-" + ticket.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.75, ease: "easeOut" }}
+              exit={{
+                opacity: 0,
+                scale: 0.9,
+                transition: { delay: 2, duration: 0.75, ease: "easeOut" },
+              }}
+              onAnimationComplete={() => dispatch(setSelectedTicketId(""))}
+              className="absolute  box-border top-0 right-0 -z-10 w-full h-full overflow-hidden rounded-2xl"
+            >
+              <div className="border-amber-700 border-b-32 rounded-2xl w-full h-full"></div>
+            </motion.div>
+            <motion.div
+              key={"selected-" + ticket.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.75, ease: "easeOut" }}
+              exit={{
+                opacity: 0,
+                scale: 1.06,
+                transition: { delay: 2, duration: 0.75, ease: "easeOut" },
+              }}
+              onAnimationComplete={() => dispatch(setSelectedTicketId(""))}
+              className="absolute box-border top-0 right-0 z-10 w-full h-full overflow-hidden rounded-2xl"
+            >
+              <div className="border-amber-700 border-4 rounded-2xl w-full h-full"></div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

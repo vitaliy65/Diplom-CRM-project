@@ -13,6 +13,7 @@ import { RegisterScreen } from "./register-screen";
 import { AnimatePresence } from "framer-motion";
 import { CommandPalette } from "../navigation/CommandPalette";
 import { TopBar } from "../navigation/TopBar";
+import { selectActiveView, setActiveView } from "@/store/slices/view-slice";
 
 export default function MainAppLayout({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
@@ -20,7 +21,7 @@ export default function MainAppLayout({ children }: { children: ReactNode }) {
   const initialized = useAppSelector(selectAuthInitialized);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [commandOpen, setCommandOpen] = useState(false);
-  const [activeView, setActiveView] = useState<string>("dashboard");
+  const activeView = useAppSelector(selectActiveView);
 
   if (!initialized) {
     console.log("[CRMPage] Waiting for initialization...");
@@ -51,14 +52,14 @@ export default function MainAppLayout({ children }: { children: ReactNode }) {
       <FloatingSidebar
         userRole={user.role}
         onLogout={() => dispatch(logout())}
-        onChangeView={(view) => setActiveView(view)}
+        onChangeView={(view) => dispatch(setActiveView(view))}
         activeView={activeView}
       />
 
       <CommandPalette
         isOpen={commandOpen}
         onClose={() => setCommandOpen(false)}
-        onChangeView={(view) => setActiveView(view)}
+        onChangeView={(view) => dispatch(setActiveView(view))}
       />
 
       <AnimatePresence>{children}</AnimatePresence>

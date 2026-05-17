@@ -23,7 +23,7 @@ import {
   Zap,
   TicketIcon,
 } from "lucide-react";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectTickets } from "@/store/slices/tickets-slice";
 import { selectClients } from "@/store/slices/clients-slice";
 import { selectMasters } from "@/store/slices/users-slice";
@@ -32,6 +32,10 @@ import { ActivityItem } from "../dashboard-view-components/ActivityItem";
 import { Ticket } from "@/lib/types";
 import { getWeeklyData } from "@/lib/utils";
 import { PieCustomTooltip } from "../dashboard-view-components/PieCustomTooltip";
+import { setSelectedTicketId } from "@/store/slices/selected-ticket-slice";
+import { useRouter } from "next/navigation";
+import { menuItems } from "@/static/MenuItems";
+import { setActiveView } from "@/store/slices/view-slice";
 
 let _dashboardAnimated = false;
 
@@ -81,38 +85,34 @@ export function DashboardView() {
   const tickets = useAppSelector(selectTickets) as Ticket[];
   const clients = useAppSelector(selectClients);
   const masters = useAppSelector(selectMasters);
+  const router = useRouter();
+  const dispatch = useAppDispatch();
 
   // ------------------------------------------------------------------
   // Memoised derivations — recalculate only when source data changes
   // ------------------------------------------------------------------
-  const statusCounts = useMemo(
-    () => ({
-      received: tickets.filter((t) => t.status === "received").length,
-      inProgress: tickets.filter((t) => t.status === "in-progress").length,
-      ready: tickets.filter((t) => t.status === "ready").length,
-      delivered: tickets.filter((t) => t.status === "delivered").length,
-      slaViolation: tickets.filter((t) => t.slaViolation).length,
-    }),
-    [tickets],
-  );
+  const statusCounts = {
+    received: tickets.filter((t) => t.status === "received").length,
+    inProgress: tickets.filter((t) => t.status === "in-progress").length,
+    ready: tickets.filter((t) => t.status === "ready").length,
+    delivered: tickets.filter((t) => t.status === "delivered").length,
+    slaViolation: tickets.filter((t) => t.slaViolation).length,
+  };
 
-  const weeklyData = useMemo(() => getWeeklyData(tickets), [tickets]);
+  const weeklyData = getWeeklyData(tickets);
 
-  const recentActivities = useMemo(
-    () =>
-      tickets.slice(0, 5).map((ticket, idx) => ({
-        id: idx + 1,
-        text: `Заявка ${ticket.id}: ${ticket.clientName}`,
-        time: "щойно",
-        type:
-          ticket.status === "ready"
-            ? "ready"
-            : ticket.status === "in-progress"
-              ? "progress"
-              : "new",
-      })),
-    [tickets],
-  );
+  const recentActivities = tickets.slice(0, 5).map((ticket, idx) => ({
+    id: idx + 1,
+    ticketId: ticket.id,
+    text: `Заявка ${ticket.id}: ${ticket.clientName}`,
+    time: "щойно",
+    type:
+      ticket.status === "ready"
+        ? "ready"
+        : ticket.status === "in-progress"
+          ? "progress"
+          : "new",
+  }));
 
   const { pieData, totalStatuses } = useMemo(() => {
     const total =
@@ -134,10 +134,7 @@ export function DashboardView() {
     return { pieData: data, totalStatuses: total };
   }, [statusCounts]);
 
-  const activeMasters = useMemo(
-    () => masters.filter((m) => m.active).length,
-    [masters],
-  );
+  const activeMasters = masters.filter((m) => m.active).length;
 
   // ------------------------------------------------------------------
   // Render
@@ -388,7 +385,18 @@ export function DashboardView() {
               </div>
               <div className="space-y-1 overflow-y-auto max-h-[200px] md:max-h-[220px] pr-2">
                 {recentActivities.map((activity) => (
-                  <ActivityItem key={activity.id} activity={activity} />
+                  <ActivityItem
+                    key={activity.id}
+                    activity={activity}
+                    onClick={() => {
+                      dispatch(setSelectedTicketId(activity.ticketId));
+                      dispatch(setActiveView("tickets"));
+                      router.push(
+                        menuItems.findLast((item) => item.id == "tickets")
+                          ?.url || "",
+                      );
+                    }}
+                  />
                 ))}
               </div>
             </div>
