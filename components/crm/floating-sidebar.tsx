@@ -8,7 +8,7 @@ import { LogoutButton } from "../navigation/sidebar-components/LogoutButton";
 import { MobileBottomNavItem } from "../navigation/sidebar-components/MobileBottomNavItem";
 import { MobileOverlayNavItem } from "../navigation/sidebar-components/MobileOverlayNavItem";
 import { menuItems } from "@/static/MenuItems";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/use-app-router";
 
 interface FloatingSidebarProps {
   userRole: string;
@@ -25,7 +25,7 @@ export function FloatingSidebar({
 }: FloatingSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const router = useRouter();
+  const { router } = useAppRouter();
 
   const filteredItems = menuItems.filter((item) =>
     item.roles.includes(userRole),
@@ -91,7 +91,10 @@ export function FloatingSidebar({
                 icon={item.icon}
                 label={item.label}
                 isActive={activeView === item.id}
-                onClick={() => onChangeView(item.id)}
+                onClick={() => {
+                  onChangeView(item.id);
+                  router.push(item.url);
+                }}
               />
             ))}
             {filteredItems.length > 4 && (

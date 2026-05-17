@@ -1,11 +1,12 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "../ui/button";
 import { Clock, Monitor, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Ticket } from "@/lib/types";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setSelectedTicketId } from "@/store/slices/selected-ticket-slice";
+import TicketSelectionAnimation from "./TicketSelection-animation";
+import { toReadableTime } from "@/lib/time";
+import { useAppSelector } from "@/store/hooks";
 
 export function TicketCard({
   ticket,
@@ -15,8 +16,6 @@ export function TicketCard({
   index: number;
 }) {
   const [isHovered, setIsHovered] = useState(false);
-  const selectedTicketId = useAppSelector((s) => s.selectedTicket.id);
-  const dispatch = useAppDispatch();
 
   return (
     <motion.div
@@ -29,7 +28,7 @@ export function TicketCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "group relative cursor-pointer",
+        "group relative cursor-pointer scroll-smooth",
         isHovered && "border-primary/30 shadow-lg shadow-primary/5",
         ticket.slaViolation && "border-l-2 border-l-glow-red",
       )}
@@ -91,46 +90,11 @@ export function TicketCard({
           )}
           <div className="flex items-center gap-1 text-[10px] md:text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
-            <span>{ticket.createdAt}</span>
+            <span>{toReadableTime(ticket.createdAt)}</span>
           </div>
         </div>
       </div>
-      <AnimatePresence mode="wait">
-        {selectedTicketId && ticket.id === selectedTicketId && (
-          <>
-            <motion.div
-              key={"selected-" + ticket.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.75, ease: "easeOut" }}
-              exit={{
-                opacity: 0,
-                scale: 0.9,
-                transition: { delay: 2, duration: 0.75, ease: "easeOut" },
-              }}
-              onAnimationComplete={() => dispatch(setSelectedTicketId(""))}
-              className="absolute  box-border top-0 right-0 -z-10 w-full h-full overflow-hidden rounded-2xl"
-            >
-              <div className="border-amber-700 border-b-32 rounded-2xl w-full h-full"></div>
-            </motion.div>
-            <motion.div
-              key={"selected-" + ticket.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.75, ease: "easeOut" }}
-              exit={{
-                opacity: 0,
-                scale: 1.06,
-                transition: { delay: 2, duration: 0.75, ease: "easeOut" },
-              }}
-              onAnimationComplete={() => dispatch(setSelectedTicketId(""))}
-              className="absolute box-border top-0 right-0 z-10 w-full h-full overflow-hidden rounded-2xl"
-            >
-              <div className="border-amber-700 border-4 rounded-2xl w-full h-full"></div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <TicketSelectionAnimation ticket={ticket} />
     </motion.div>
   );
 }

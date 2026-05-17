@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Ticket, UserProfile } from "@/lib/types";
 import { useSelector, useDispatch } from "react-redux";
@@ -20,15 +26,19 @@ export function AssignMasterModal({
   ticket,
 }: AssignMasterModalProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const [selectedMasterId, setSelectedMasterId] = useState<string | null>(ticket.masterId);
-  const users = useSelector((state: RootState) => state.users.items as UserProfile[]);
+  const [selectedMasterId, setSelectedMasterId] = useState<string | null>(
+    ticket.masterId,
+  );
+  const users = useSelector(
+    (state: RootState) => state.users.items as UserProfile[],
+  );
   const saving = useSelector(selectTicketsSaving);
 
-  // Filter only active masters
+  // Only active masters
   const activeMasters = users.filter((u) => u.role === "master" && u.active);
 
   useEffect(() => {
-    // Reset to the current ticket master when the modal opens
+    // Reset when modal opens
     if (open) setSelectedMasterId(ticket.masterId);
   }, [open, ticket.masterId]);
 
@@ -46,51 +56,41 @@ export function AssignMasterModal({
           masterId: selectedMaster ? selectedMaster.id : null,
           masterName: selectedMaster ? selectedMaster.name : null,
         },
-      })
+      }),
     );
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="bg-secondary max-w-sm">
         <DialogHeader>
           <DialogTitle>Призначити майстра</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-2 my-2">
-          {activeMasters.length === 0 && (
-            <span className="text-sm text-muted-foreground">Немає доступних майстрів</span>
-          )}
-          {activeMasters.map((master) => (
-            <label
-              key={master.id}
-              className={`flex items-center gap-2 rounded p-2 cursor-pointer hover:bg-accent ${selectedMasterId === master.id ? "border-primary border" : ""}`}
+          {activeMasters.length === 0 ? (
+            <span className="text-sm text-muted-foreground">
+              Немає доступних майстрів
+            </span>
+          ) : (
+            <select
+              className="w-full p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+              value={selectedMasterId ?? ""}
+              onChange={(e) => {
+                setSelectedMasterId(
+                  e.target.value === "" ? null : e.target.value,
+                );
+              }}
+              disabled={saving}
             >
-              <input
-                type="radio"
-                name="master"
-                value={master.id}
-                checked={selectedMasterId === master.id}
-                onChange={() => setSelectedMasterId(master.id)}
-                className="accent-primary"
-              />
-              <span className="font-medium text-sm">{master.name}</span>
-              <span className="ml-auto text-xs text-muted-foreground">({master.email})</span>
-            </label>
-          ))}
-          <label
-            className={`flex items-center gap-2 rounded p-2 cursor-pointer hover:bg-accent ${selectedMasterId === null ? "border-primary border" : ""}`}
-          >
-            <input
-              type="radio"
-              name="master"
-              value=""
-              checked={selectedMasterId === null}
-              onChange={() => setSelectedMasterId(null)}
-              className="accent-primary"
-            />
-            <span className="font-medium text-sm text-muted-foreground">Не призначено</span>
-          </label>
+              <option value="">Не призначено</option>
+              {activeMasters.map((master) => (
+                <option key={master.id} value={master.id}>
+                  {master.name} ({master.email})
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         <DialogFooter>
           <Button
@@ -111,4 +111,3 @@ export function AssignMasterModal({
     </Dialog>
   );
 }
-

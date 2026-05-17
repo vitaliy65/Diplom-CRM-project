@@ -36,6 +36,7 @@ import { setSelectedTicketId } from "@/store/slices/selected-ticket-slice";
 import { useRouter } from "next/navigation";
 import { menuItems } from "@/static/MenuItems";
 import { setActiveView } from "@/store/slices/view-slice";
+import { getAverageRepairTimeForAllMasters, getSlaPercent } from "@/lib/master";
 
 let _dashboardAnimated = false;
 
@@ -436,7 +437,7 @@ export function DashboardView() {
                     Сер. час ремонту
                   </span>
                   <span className="text-xl md:text-2xl font-bold text-foreground">
-                    2.4 дні
+                    {getAverageRepairTimeForAllMasters(tickets)}
                   </span>
                 </div>
               </div>
@@ -457,30 +458,54 @@ export function DashboardView() {
               </div>
               <div className="flex-1 flex items-center justify-center py-4">
                 <div className="relative">
-                  <svg className="h-24 w-24 md:h-32 md:w-32 -rotate-90 transform">
-                    <circle
-                      cx="50%"
-                      cy="50%"
-                      r="40%"
-                      stroke="oklch(0.2 0.01 270)"
-                      strokeWidth="8"
-                      fill="none"
-                    />
-                    <circle
-                      cx="50%"
-                      cy="50%"
-                      r="40%"
-                      stroke="oklch(0.78 0.2 155)"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeDasharray={`${0.87 * 251} 251`}
-                      strokeLinecap="round"
-                      className="drop-shadow-[0_0_8px_oklch(0.78_0.2_155/0.5)]"
-                    />
-                  </svg>
+                  {(() => {
+                    // Настройки круга
+                    const percent = getSlaPercent(tickets);
+                    const size = 128; // размер SVG
+                    const strokeWidth = 8;
+                    const radius = size / 2 - strokeWidth / 2;
+                    const circumference = 2 * Math.PI * radius;
+                    const progress = Math.max(0, Math.min(100, percent));
+                    const offset = circumference * (1 - progress / 100);
+                    const svgSize = `h-24 w-24 md:h-32 md:w-32 overflow-visible`;
+
+                    return (
+                      <svg
+                        width={size}
+                        height={size}
+                        viewBox={`0 0 ${size} ${size}`}
+                        className={`-rotate-90 transform ${svgSize}`}
+                      >
+                        <circle
+                          cx={size / 2}
+                          cy={size / 2}
+                          r={radius}
+                          stroke="oklch(0.2 0.01 270)"
+                          strokeWidth={strokeWidth}
+                          fill="none"
+                        />
+                        <circle
+                          cx={size / 2}
+                          cy={size / 2}
+                          r={radius}
+                          stroke="oklch(0.78 0.2 155)"
+                          strokeWidth={strokeWidth}
+                          fill="none"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={offset}
+                          strokeLinecap="round"
+                          className="drop-shadow-[0_0_4px_oklch(0.78_0.2_155/0.5)]"
+                          style={{
+                            transition:
+                              "stroke-dashoffset 0.8s cubic-bezier(.42,0,1,1)",
+                          }}
+                        />
+                      </svg>
+                    );
+                  })()}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-2xl md:text-3xl font-bold text-foreground">
-                      87%
+                      {getSlaPercent(tickets)}%
                     </span>
                     <span className="text-[10px] md:text-xs text-muted-foreground">
                       вчасно

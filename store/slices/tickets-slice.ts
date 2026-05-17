@@ -128,9 +128,14 @@ export const changeTicketStatus = createAsyncThunk(
       return rejectWithValue("Недостатньо прав для зміни статусу.");
     }
     try {
-      await updateDoc(doc(db, "tickets", payload.id), {
+      // Если статус меняется на "ready" — сохраняем readyAt, иначе не трогаем
+      const updateData: any = {
         status: payload.newStatus,
-      });
+      };
+      if (payload.newStatus === "ready") {
+        updateData.readyAt = new Date().toISOString();
+      }
+      await updateDoc(doc(db, "tickets", payload.id), updateData);
       await addDoc(collection(db, "logs"), {
         ticketId: payload.id,
         oldStatus: payload.oldStatus,

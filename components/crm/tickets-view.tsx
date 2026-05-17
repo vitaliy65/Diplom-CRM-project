@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence, delay, scale } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,9 +68,20 @@ export function TicketsView() {
     return matchesSearch && matchesStatus && matchesMaster;
   });
 
+  const selectedTicketId = useAppSelector((s) => s.selectedTicket.id);
+
+  useEffect(() => {
+    if (selectedTicketId) {
+      const el = document.getElementById("selected-ticket");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [selectedTicketId]);
+
   return (
     <div className="min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24">
-      <div className="mx-auto max-w-7xl md:pl-16">
+      <div className="mx-auto max-w-7xl md:pl-16 scroll-smooth">
         {/* Header */}
         <motion.div
           variants={containerVariants}
