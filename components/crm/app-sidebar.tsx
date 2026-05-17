@@ -43,7 +43,7 @@ export function AppSidebar({ currentView, onViewChange }: AppSidebarProps) {
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "flex flex-col h-screen bg-sidebar border-r border-sidebar-border transition-all duration-200",
+          "flex flex-col h-screen bg-sidebar border-r border-sidebar-border    ",
           collapsed ? "w-16" : "w-64",
         )}
       >

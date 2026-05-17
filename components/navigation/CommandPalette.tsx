@@ -40,11 +40,7 @@ export function CommandPalette({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-<<<<<<< HEAD
             className="fixed inset-0 z-100 bg-background/60 backdrop-blur-sm"
-=======
-            className="fixed inset-0 z-[100] bg-background/60 backdrop-blur-sm"
->>>>>>> 0aef017 (Diplom CRM v1.0)
             onClick={onClose}
           />
           <motion.div
@@ -52,11 +48,7 @@ export function CommandPalette({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.15 }}
-<<<<<<< HEAD
             className="fixed left-4 right-4 top-[20%] z-101 sm:left-1/2 sm:right-auto sm:w-full sm:max-w-lg sm:-translate-x-1/2"
-=======
-            className="fixed left-4 right-4 top-[20%] z-[101] sm:left-1/2 sm:right-auto sm:w-full sm:max-w-lg sm:-translate-x-1/2"
->>>>>>> 0aef017 (Diplom CRM v1.0)
           >
             <div className="glass rounded-2xl overflow-hidden shadow-2xl">
               <div className="flex items-center gap-3 border-b border-border/50 px-4 py-3">

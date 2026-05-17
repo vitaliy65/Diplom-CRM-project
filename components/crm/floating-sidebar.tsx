@@ -51,7 +51,7 @@ export function FloatingSidebar({
         onMouseLeave={() => setIsExpanded(false)}
       >
         <motion.nav
-          className="glass rounded-2xl p-2 flex flex-col gap-1"
+          className="bg-card border border-border/50 rounded-2xl p-2 flex flex-col gap-1"
           animate={{ width: isExpanded ? 180 : 56 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
         >
@@ -118,11 +118,7 @@ export function FloatingSidebar({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-<<<<<<< HEAD
               className="fixed inset-0 z-60 bg-background/80 backdrop-blur-sm md:hidden"
-=======
-              className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm md:hidden"
->>>>>>> 0aef017 (Diplom CRM v1.0)
               onClick={() => setIsMobileMenuOpen(false)}
             />
             <motion.div
@@ -130,11 +126,7 @@ export function FloatingSidebar({
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25 }}
-<<<<<<< HEAD
               className="fixed bottom-0 left-0 right-0 z-61 glass rounded-t-3xl p-4 safe-area-bottom md:hidden"
-=======
-              className="fixed bottom-0 left-0 right-0 z-[61] glass rounded-t-3xl p-4 safe-area-bottom md:hidden"
->>>>>>> 0aef017 (Diplom CRM v1.0)
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-foreground">Меню</h3>

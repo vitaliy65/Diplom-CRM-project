@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, delay, scale } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,17 +27,19 @@ import { KanbanBoard } from "../tickets-view-components/KanbanBoard";
 import { TicketsTable } from "../tickets-view-components/TicketsTable";
 import { CreateTicketDialog } from "../tickets-view-components/CreateTicketDialog";
 
-const containerVariants = {
-  hidden: { opacity: 0 },
+export const containerVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.05 },
+    scale: 1,
+    y: [50, 0],
+    transition: { staggerChildren: 0.1 },
   },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
+const variantItem = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
 };
 
 export function TicketsView() {
@@ -67,19 +69,19 @@ export function TicketsView() {
   });
 
   return (
-    <motion.div
-      className="min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+    <div className="min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24">
       <div className="mx-auto max-w-7xl md:pl-16">
         {/* Header */}
         <motion.div
-          variants={itemVariants}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
           className="flex flex-col gap-4 md:gap-6 mb-4 md:mb-6"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <motion.div
+            variants={variantItem}
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+          >
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                 Заявки
@@ -119,10 +121,10 @@ export function TicketsView() {
                 clients={clients}
               />
             </Dialog>
-          </div>
+          </motion.div>
 
           {/* Filters */}
-          <motion.div variants={itemVariants} className="bento-card p-3 md:p-4">
+          <motion.div variants={variantItem} className="bento-card p-3 md:p-4">
             <div className="flex flex-col gap-3">
               {/* Search */}
               <div className="relative">
@@ -194,20 +196,18 @@ export function TicketsView() {
         </motion.div>
 
         {/* Content */}
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <div className="text-sm text-muted-foreground">
-              Завантаження заявок...
-            </div>
-          ) : null}
-          {!loading &&
-            (viewMode === "kanban" ? (
-              <KanbanBoard key="kanban" tickets={filteredTickets} />
-            ) : (
-              <TicketsTable key="table" tickets={filteredTickets} />
-            ))}
-        </AnimatePresence>
+        {loading ? (
+          <div className="text-sm text-muted-foreground">
+            Завантаження заявок...
+          </div>
+        ) : null}
+        {!loading &&
+          (viewMode === "kanban" ? (
+            <KanbanBoard key="kanban" tickets={filteredTickets} />
+          ) : (
+            <TicketsTable key="table" tickets={filteredTickets} />
+          ))}
       </div>
-    </motion.div>
+    </div>
   );
 }

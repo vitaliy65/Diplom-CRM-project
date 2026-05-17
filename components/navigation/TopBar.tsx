@@ -57,7 +57,7 @@ export function TopBar({ userName, userRole, onCommandOpen }: TopBarProps) {
 
         <motion.button
           onClick={onCommandOpen}
-          className="glass hidden sm:flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground"
+          className="glass hidden sm:flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-muted-foreground hover:border-primary/30 hover:text-foreground"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           initial={{ y: -20, opacity: 0 }}
@@ -90,11 +90,7 @@ export function TopBar({ userName, userRole, onCommandOpen }: TopBarProps) {
             </p>
           </div>
           <div className="relative">
-<<<<<<< HEAD
             <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full bg-linear-to-br from-primary/30 to-primary/10 text-xs md:text-sm font-semibold text-primary ring-2 ring-primary/20">
-=======
-            <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 to-primary/10 text-xs md:text-sm font-semibold text-primary ring-2 ring-primary/20">
->>>>>>> 0aef017 (Diplom CRM v1.0)
               {userName.charAt(0)}
             </div>
             <span className="absolute bottom-0 right-0 h-2.5 w-2.5 md:h-3 md:w-3 rounded-full bg-glow-green dot-glow-green ring-2 ring-background" />
