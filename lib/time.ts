@@ -27,3 +27,34 @@ export function toReadableTime(createdAt: Date | string | number): string {
 
   return result.join(" ");
 }
+
+/**
+ * Преобразует дату в полный читаемый формат даты и времени, например: "21.04.2024, 14:22:10"
+ * @param date - дата (Date|string|number)
+ * @returns строка полного времени и даты
+ */
+export function toFullDateTime(date: Date | string | number): string {
+  let d: Date;
+
+  if (typeof date === "number") {
+    d = new Date(date);
+  } else if (typeof date === "string") {
+    d = new Date(date);
+  } else {
+    d = date;
+  }
+
+  if (isNaN(d.getTime())) return "";
+
+  // Формат: "дд.мм.гггг, чч:мм:сс"
+  const pad = (num: number) => num.toString().padStart(2, "0");
+
+  const day = pad(d.getDate());
+  const month = pad(d.getMonth() + 1);
+  const year = d.getFullYear();
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  const seconds = pad(d.getSeconds());
+
+  return `${day}.${month}.${year}, ${hours}:${minutes}:${seconds}`;
+}

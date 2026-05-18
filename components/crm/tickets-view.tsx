@@ -80,7 +80,7 @@ export function TicketsView() {
   }, [selectedTicketId]);
 
   return (
-    <div className="min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24">
+    <div className="min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24 general-view-settings">
       <div className="mx-auto max-w-7xl md:pl-16 scroll-smooth">
         {/* Header */}
         <motion.div
@@ -144,14 +144,14 @@ export function TicketsView() {
                   placeholder="ID, клієнт, телефон..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-secondary/50 border-border/50 focus:border-primary/50"
+                  className="pl-9 bg-background/50 border-border focus:border-primary/50"
                 />
               </div>
 
               {/* Filters Row */}
               <div className="flex flex-wrap gap-2 md:gap-3 items-center">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-36 bg-secondary/50 border-border/50 text-sm">
+                  <SelectTrigger className="w-full sm:w-36 bg-background/50 border-border text-sm">
                     <SelectValue placeholder="Статус" />
                   </SelectTrigger>
                   <SelectContent className="glass">
@@ -164,7 +164,7 @@ export function TicketsView() {
                 </Select>
 
                 <Select value={masterFilter} onValueChange={setMasterFilter}>
-                  <SelectTrigger className="w-full sm:w-36 bg-secondary/50 border-border/50 text-sm">
+                  <SelectTrigger className="w-full sm:w-36 bg-background/50 border-border text-sm">
                     <SelectValue placeholder="Майстер" />
                   </SelectTrigger>
                   <SelectContent className="glass">
@@ -177,7 +177,7 @@ export function TicketsView() {
                   </SelectContent>
                 </Select>
 
-                <div className="flex gap-1 p-1 bg-secondary/50 rounded-xl ml-auto">
+                <div className="flex gap-1 p-1 bg-background/50 rounded-xl border border-border ml-auto">
                   <Button
                     variant="ghost"
                     size="sm"

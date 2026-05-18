@@ -33,7 +33,7 @@ export function TopBar({ userName, userRole, onCommandOpen }: TopBarProps) {
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed left-0 right-0 top-0 z-40 px-4 py-3 md:py-4"
+      className="fixed left-0 right-0 top-0 z-40 px-4 py-3 md:py-4 bg-glass/50 border-b border-border backdrop-blur-xl"
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <motion.div

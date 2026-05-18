@@ -48,7 +48,7 @@
   --chart-5: oklch(0.65 0.28 25);
 
   /* Glassmorphism */
-  --glass: oklch(0.14 0.01 270 / 0.7);
+  --glass: #0a0a0a;
   --glass-border: oklch(0.3 0.01 270 / 0.3);
 
   /* Sidebar */
@@ -202,7 +202,7 @@
   }
 
   .bento-card {
-    @apply rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm;
+    @apply rounded-2xl border border-border/50 bg-glass backdrop-blur-sm;
     box-shadow:
       0 0 0 1px oklch(0.3 0.01 270 / 0.1),
       0 4px 24px oklch(0 0 0 / 0.2);
@@ -239,4 +239,8 @@
   ::-webkit-scrollbar-thumb:hover {
     background: oklch(0.3 0.01 270 / 0.7);
   }
+}
+
+.general-view-settings {
+  @apply max-md:pb-[97px];
 }

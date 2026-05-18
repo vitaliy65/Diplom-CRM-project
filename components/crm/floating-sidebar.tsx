@@ -151,6 +151,7 @@ export function FloatingSidebar({
                     onClick={() => {
                       onChangeView(item.id);
                       setIsMobileMenuOpen(false);
+                      router.push(item.url);
                     }}
                   />
                 ))}

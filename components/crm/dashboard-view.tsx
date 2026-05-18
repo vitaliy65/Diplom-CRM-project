@@ -72,7 +72,11 @@ const PIE_META = [
     key: "inProgress" as const,
   },
   { name: "Готові", color: "oklch(0.78 0.2 155)", key: "ready" as const },
-  { name: "Видані", color: "oklch(0.65 0.15 155)", key: "delivered" as const },
+  {
+    name: "Видані",
+    color: "oklch(49.6% 0.265 301.924)",
+    key: "delivered" as const,
+  },
 ] as const;
 
 const PIE_FALLBACK = [
@@ -142,7 +146,7 @@ export function DashboardView() {
   // ------------------------------------------------------------------
   return (
     <motion.div
-      className="min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24"
+      className="min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24 general-view-settings"
       initial={_dashboardAnimated ? false : "hidden"}
       animate="visible"
       variants={containerVariants}

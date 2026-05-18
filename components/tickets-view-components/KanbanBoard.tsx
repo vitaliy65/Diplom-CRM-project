@@ -86,7 +86,7 @@ export function KanbanBoard({ tickets }: { tickets: Ticket[] }) {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="flex h-24 md:h-32 items-center justify-center rounded-xl border border-dashed border-border/50 text-xs md:text-sm text-muted-foreground"
+                    className="flex h-24 md:h-32 items-center justify-center rounded-xl border border-dashed border-border text-xs md:text-sm text-muted-foreground"
                   >
                     Немає заявок
                   </motion.div>

@@ -1,33 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import {
-  Dialog,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
+import { Plus, Search, Mail, Phone, ClipboardList, Users } from "lucide-react";
 import {
-  Plus,
-  Search,
-  Mail,
-  Phone,
-  ClipboardList,
-  Users,
-} from "lucide-react"
-import { createClient, selectClients, selectClientsLoading } from "@/store/slices/clients-slice"
-import { selectTickets } from "@/store/slices/tickets-slice"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import type { Client } from "@/lib/types"
+  createClient,
+  selectClients,
+  selectClientsLoading,
+} from "@/store/slices/clients-slice";
+import { selectTickets } from "@/store/slices/tickets-slice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import type { Client } from "@/lib/types";
 import { CreateClientDialog } from "../clients-view-components/CreateClientDialog";
 import { ClientCard } from "../clients-view-components/ClientCard";
 import { StatusBadge } from "../tickets-view-components/StatusBadge";
@@ -38,36 +32,36 @@ const containerVariants = {
     opacity: 1,
     transition: { staggerChildren: 0.05 },
   },
-}
+};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
-}
+};
 
 export function ClientsView() {
-  const dispatch = useAppDispatch()
-  const clients = useAppSelector(selectClients)
-  const tickets = useAppSelector(selectTickets)
-  const loading = useAppSelector(selectClientsLoading)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const dispatch = useAppDispatch();
+  const clients = useAppSelector(selectClients);
+  const tickets = useAppSelector(selectTickets);
+  const loading = useAppSelector(selectClientsLoading);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       client.phone.includes(searchQuery) ||
-      client.email.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+      client.email.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const clientTickets = selectedClient
     ? tickets.filter((t) => t.clientId === selectedClient.id)
-    : []
+    : [];
 
   return (
     <motion.div
-      className="min-h-screen px-4 pb-8 pt-24"
+      className="min-h-screen px-4 pb-8 pt-24 general-view-settings"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -81,11 +75,19 @@ export function ClientsView() {
                 <Users className="h-6 w-6 text-primary" />
                 <h1 className="text-3xl font-bold text-foreground">Клієнти</h1>
               </div>
-              <p className="text-muted-foreground">База даних клієнтів сервісного центру</p>
+              <p className="text-muted-foreground">
+                База даних клієнтів сервісного центру
+              </p>
             </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <Dialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+            >
               <DialogTrigger asChild>
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Button className="bg-primary hover:bg-primary/90 gap-2">
                     <Plus className="h-4 w-4" />
                     Новий клієнт
@@ -95,19 +97,25 @@ export function ClientsView() {
               <CreateClientDialog
                 onClose={() => setIsCreateDialogOpen(false)}
                 onSubmit={async (payload) => {
-                  const result = await dispatch(createClient(payload))
+                  const result = await dispatch(createClient(payload));
                   if (createClient.fulfilled.match(result)) {
-                    toast.success("Клієнта додано")
-                    setIsCreateDialogOpen(false)
+                    toast.success("Клієнта додано");
+                    setIsCreateDialogOpen(false);
                   } else {
-                    toast.error((result.payload as string) || "Помилка додавання клієнта")
+                    toast.error(
+                      (result.payload as string) || "Помилка додавання клієнта",
+                    );
                   }
                 }}
               />
             </Dialog>
           </div>
         </motion.div>
-        {loading && <p className="text-sm text-muted-foreground mb-3">Завантаження клієнтів...</p>}
+        {loading && (
+          <p className="text-sm text-muted-foreground mb-3">
+            Завантаження клієнтів...
+          </p>
+        )}
 
         {/* Search */}
         <motion.div variants={itemVariants} className="bento-card p-4 mb-6">
@@ -140,7 +148,10 @@ export function ClientsView() {
         </motion.div>
 
         {filteredClients.length === 0 && (
-          <motion.div variants={itemVariants} className="bento-card p-8 text-center">
+          <motion.div
+            variants={itemVariants}
+            className="bento-card p-8 text-center"
+          >
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-foreground font-medium">Клієнтів не знайдено</p>
             <p className="text-sm text-muted-foreground mt-1">
@@ -150,10 +161,15 @@ export function ClientsView() {
         )}
 
         {/* Client Details Sheet */}
-        <Sheet open={!!selectedClient} onOpenChange={(open) => !open && setSelectedClient(null)}>
+        <Sheet
+          open={!!selectedClient}
+          onOpenChange={(open) => !open && setSelectedClient(null)}
+        >
           <SheetContent className="bg-card border-border/50 w-full sm:max-w-lg overflow-y-auto p-4">
             <SheetHeader>
-              <SheetTitle className="text-foreground">Профіль клієнта</SheetTitle>
+              <SheetTitle className="text-foreground">
+                Профіль клієнта
+              </SheetTitle>
               <SheetDescription className="text-muted-foreground">
                 Детальна інформація та історія звернень
               </SheetDescription>
@@ -176,8 +192,12 @@ export function ClientsView() {
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-foreground">{selectedClient.name}</h3>
-                    <p className="text-sm text-muted-foreground">ID: {selectedClient.id}</p>
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {selectedClient.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      ID: {selectedClient.id}
+                    </p>
                   </div>
                 </div>
 
@@ -190,7 +210,9 @@ export function ClientsView() {
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20">
                       <Phone className="h-4 w-4 text-primary" />
                     </div>
-                    <span className="text-foreground">{selectedClient.phone}</span>
+                    <span className="text-foreground">
+                      {selectedClient.phone}
+                    </span>
                   </a>
                   <a
                     href={`mailto:${selectedClient.email}`}
@@ -199,7 +221,9 @@ export function ClientsView() {
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-glow-purple/20">
                       <Mail className="h-4 w-4 text-glow-purple" />
                     </div>
-                    <span className="text-foreground">{selectedClient.email}</span>
+                    <span className="text-foreground">
+                      {selectedClient.email}
+                    </span>
                   </a>
                 </div>
 
@@ -219,7 +243,9 @@ export function ClientsView() {
                             </span>
                             <StatusBadge status={ticket.status} />
                           </div>
-                          <p className="text-sm font-medium text-foreground">{ticket.device}</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {ticket.device}
+                          </p>
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {ticket.problem}
                           </p>
@@ -238,5 +264,5 @@ export function ClientsView() {
         </Sheet>
       </div>
     </motion.div>
-  )
+  );
 }
