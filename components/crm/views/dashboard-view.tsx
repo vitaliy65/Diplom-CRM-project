@@ -27,11 +27,11 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectTickets } from "@/store/slices/tickets-slice";
 import { selectClients } from "@/store/slices/clients-slice";
 import { selectMasters } from "@/store/slices/users-slice";
-import { StatCard } from "../dashboard-view-components/StatCard";
-import { ActivityItem } from "../dashboard-view-components/ActivityItem";
+import { StatCard } from "../../dashboard-view-components/StatCard";
+import { ActivityItem } from "../../dashboard-view-components/ActivityItem";
 import { Ticket } from "@/lib/types";
 import { getWeeklyData } from "@/lib/utils";
-import { PieCustomTooltip } from "../dashboard-view-components/PieCustomTooltip";
+import { PieCustomTooltip } from "../../dashboard-view-components/PieCustomTooltip";
 import { setSelectedTicketId } from "@/store/slices/selected-ticket-slice";
 import { useRouter } from "next/navigation";
 import { menuItems } from "@/static/MenuItems";
@@ -146,7 +146,7 @@ export function DashboardView() {
   // ------------------------------------------------------------------
   return (
     <motion.div
-      className="min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24 general-view-settings"
+      className="general-view-settings"
       initial={_dashboardAnimated ? false : "hidden"}
       animate="visible"
       variants={containerVariants}

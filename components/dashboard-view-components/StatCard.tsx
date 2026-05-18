@@ -1,7 +1,7 @@
 import React from "react";
 import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
-import { itemVariants } from "../crm/dashboard-view";
+import { itemVariants } from "../crm/views/dashboard-view";
 
 interface StatCardProps {
   title: string;

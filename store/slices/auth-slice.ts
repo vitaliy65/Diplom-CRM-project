@@ -5,6 +5,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
+  updatePassword,
+  updateEmail,
+  fetchSignInMethodsForEmail,
   type User,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
@@ -85,8 +88,18 @@ export const loginWithEmail = createAsyncThunk(
       );
       const profile = await resolveUserProfile(credential.user);
       return { profile };
-    } catch (error) {
-      return rejectWithValue("Не вдалося увійти. Перевірте email та пароль.");
+    } catch (error: any) {
+      // Handle common Firebase errors for login
+      let message = "Не вдалося увійти. Перевірте email та пароль.";
+      if (
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/user-not-found"
+      ) {
+        message = "Неправильний email або пароль.";
+      } else if (error.code === "auth/too-many-requests") {
+        message = "Забагато невдалих спроб входу. Спробуйте пізніше.";
+      }
+      return rejectWithValue(message);
     }
   },
 );
@@ -108,6 +121,12 @@ export const registerWithEmail = createAsyncThunk(
       );
     }
     try {
+      // Проверяем, существует ли email в базе Firebase Auth
+      const methods = await fetchSignInMethodsForEmail(auth, payload.email);
+      if (methods && methods.length > 0) {
+        return rejectWithValue("Користувач з таким email вже існує.");
+      }
+
       const credential = await createUserWithEmailAndPassword(
         auth,
         payload.email,
@@ -123,9 +142,119 @@ export const registerWithEmail = createAsyncThunk(
       });
       const profile = await resolveUserProfile(credential.user);
       return { profile };
-    } catch {
+    } catch (error: any) {
+      let message = "Не вдалося створити акаунт. Перевірте введені дані.";
+      // Детализация некоторых ошибок из Firebase
+      if (error.code === "auth/invalid-email") {
+        message = "Невірний формат email.";
+      } else if (error.code === "auth/email-already-in-use") {
+        message = "Користувач з таким email вже існує.";
+      } else if (error.code === "auth/weak-password") {
+        message = "Пароль занадто простий.";
+      }
+      return rejectWithValue(message);
+    }
+  },
+);
+
+// Thunk для смены пароля текущим пользователем с более подробной обработкой ошибок
+export const changeOwnPassword = createAsyncThunk(
+  "auth/changeOwnPassword",
+  async (payload: { newPassword: string }, { rejectWithValue }) => {
+    if (!auth || !auth.currentUser) {
+      return rejectWithValue("Ви не авторизовані.");
+    }
+    try {
+      await updatePassword(auth.currentUser, payload.newPassword);
+      return { success: true };
+    } catch (error: any) {
+      let message = "Не вдалося змінити пароль.";
+      // Подробности ошибки Firebase
+      if (error.code === "auth/weak-password") {
+        message = "Пароль занадто простий.";
+      } else if (error.code === "auth/requires-recent-login") {
+        message = "Для зміни пароля потрібно повторно увійти в акаунт.";
+      }
+      return rejectWithValue(message);
+    }
+  },
+);
+
+// Thunk для смены email текущим пользователем с проверками и подробным выводом ошибок
+export const changeOwnEmail = createAsyncThunk(
+  "auth/changeOwnEmail",
+  async (payload: { newEmail: string }, { rejectWithValue }) => {
+    if (!auth || !auth.currentUser) {
+      return rejectWithValue("Ви не авторизовані.");
+    }
+    try {
+      // Проверяем, совпадает ли новый email с текущим
+      if (payload.newEmail === auth.currentUser.email) {
+        return rejectWithValue("Новий email співпадає з поточним.");
+      }
+
+      // Firebase требование: email должен быть верифицирован перед сменой (реальных препятствий нет, но такие ошибки бывают)
+      // Проверяем, существует ли такой email уже в системе Firebase Auth
+      let methods = [];
+      try {
+        methods = await fetchSignInMethodsForEmail(auth, payload.newEmail);
+      } catch (e: any) {
+        if (e.code === "auth/invalid-email") {
+          return rejectWithValue("Невірний формат email.");
+        }
+        // Возможные ограничения квоты или проблемы соединения (раскроем их)
+        return rejectWithValue(
+          "Помилка при перевірці email: " +
+            (e.message || e.code || JSON.stringify(e)),
+        );
+      }
+      if (methods && methods.length > 0) {
+        return rejectWithValue("Користувач з таким email вже існує.");
+      }
+
+      try {
+        await updateEmail(auth.currentUser, payload.newEmail);
+
+        // Обновляем email также и в базе Firestore
+        if (db && auth.currentUser.uid) {
+          const userDocRef = doc(db, "users", auth.currentUser.uid);
+          await setDoc(
+            userDocRef,
+            { email: payload.newEmail },
+            { merge: true },
+          );
+        }
+        return { email: payload.newEmail };
+      } catch (firebaseError: any) {
+        let message = "Не вдалося змінити email.";
+        let debugInfo = "";
+
+        // Подробный разбор известных ошибок
+        if (firebaseError.code === "auth/invalid-email") {
+          message = "Невірний формат email.";
+        } else if (firebaseError.code === "auth/email-already-in-use") {
+          message = "Користувач з таким email вже існує.";
+        } else if (firebaseError.code === "auth/requires-recent-login") {
+          message = "Для зміни email потрібно повторно увійти в акаунт.";
+        } else if (firebaseError.code === "auth/user-mismatch") {
+          message =
+            "Має бути підтвердження email через листа. Спробуйте перевірити пошту.";
+        } else {
+          // для любой другой ошибки выводим code и message (это часто проясняет причину)
+          debugInfo =
+            "\n[Firebase error]: " +
+            (firebaseError.code || "") +
+            " " +
+            (firebaseError.message || "");
+        }
+
+        return rejectWithValue(message + debugInfo);
+      }
+    } catch (error: any) {
+      // Здесь ошибка вне updateEmail или fetchSignInMethodsForEmail: максимально раскрываем details
       return rejectWithValue(
-        "Не вдалося створити акаунт. Перевірте введені дані.",
+        "Не вдалося змінити email. Деталі: " +
+          (error.message || error.code || JSON.stringify(error)),
       );
     }
   },
@@ -189,6 +318,35 @@ const authSlice = createSlice({
       .addCase(registerWithEmail.rejected, (state, action) => {
         state.loading = false;
         state.error = (action.payload as string) || "Помилка реєстрації.";
+      })
+      .addCase(changeOwnPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(changeOwnPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+        // Пароль изменён, ничего обновлять в профиле не нужно
+      })
+      .addCase(changeOwnPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          (action.payload as string) || "Не вдалося змінити пароль.";
+      })
+      .addCase(changeOwnEmail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(changeOwnEmail.fulfilled, (state, action) => {
+        if (state.user && action.payload && "email" in action.payload) {
+          state.user.email = action.payload.email;
+        }
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(changeOwnEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Не вдалося змінити email.";
       })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;

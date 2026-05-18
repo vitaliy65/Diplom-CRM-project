@@ -5,7 +5,7 @@ import { Wrench, CheckCircle2, ChevronRight } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
 import { selectTickets } from "@/store/slices/tickets-slice";
 import { selectCurrentUser } from "@/store/slices/auth-slice";
-import { SwipeableTicketCard } from "../master-view-components/SwipeableTicketCard";
+import { SwipeableTicketCard } from "../../master-view-components/SwipeableTicketCard";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,7 +31,7 @@ export function MasterView() {
 
   return (
     <motion.div
-      className="min-h-screen px-4 pb-8 pt-24 general-view-settings"
+      className="general-view-settings"
       initial="hidden"
       animate="visible"
       variants={containerVariants}

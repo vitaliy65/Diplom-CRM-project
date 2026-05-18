@@ -1,4 +1,4 @@
-import { TicketsView } from "@/components/crm/tickets-view";
+import { TicketsView } from "@/components/crm/views/tickets-view";
 import React from "react";
 
 export default function TicketsPage() {

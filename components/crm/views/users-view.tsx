@@ -15,8 +15,8 @@ import {
 } from "@/store/slices/users-slice";
 import { roleLabels, type UserProfile as User } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { roleConfig, UserCard } from "../users-view-components/UserCard";
-import { CreateUserDialog } from "../users-view-components/CreateUserDialog";
+import { roleConfig, UserCard } from "../../users-view-components/UserCard";
+import { CreateUserDialog } from "../../users-view-components/CreateUserDialog";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -63,7 +63,7 @@ export function UsersView() {
 
   return (
     <motion.div
-      className="min-h-screen px-4 pb-8 pt-24 general-view-settings"
+      className="general-view-settings"
       initial="hidden"
       animate="visible"
       variants={containerVariants}

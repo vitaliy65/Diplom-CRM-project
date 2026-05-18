@@ -1,4 +1,4 @@
-import { UsersView } from "@/components/crm/users-view";
+import { UsersView } from "@/components/crm/views/users-view";
 import React from "react";
 
 export default function UsersPage() {

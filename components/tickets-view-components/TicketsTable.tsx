@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle } from "lucide-react";
 import { Ticket } from "@/lib/types";
 import { StatusBadge } from "./StatusBadge";
-import { containerVariants } from "../crm/tickets-view";
+import { containerVariants } from "../crm/views/tickets-view";
 
 export function TicketsTable({ tickets }: { tickets: Ticket[] }) {
   return (

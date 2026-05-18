@@ -5,25 +5,21 @@ import { AppProviders } from "./providers";
 import MainAppLayout from "@/components/crm/MainAppLayout";
 
 export const metadata: Metadata = {
-  title: "СервісЦентр CRM",
+  title: "FixFlo CRM",
   description: "CRM система для управління сервісним центром",
   generator: "v0.app",
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
+        url: "/logo/logo-with-bg-no-text.png",
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/icon-dark-32x32.png",
+        url: "/logo/logo-with-bg-no-text.png",
         media: "(prefers-color-scheme: dark)",
       },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
     ],
-    apple: "/apple-icon.png",
+    apple: "/logo/logo-with-bg-no-text.png",
   },
 };
 

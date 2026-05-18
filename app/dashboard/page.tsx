@@ -1,4 +1,4 @@
-import { DashboardView } from "@/components/crm/dashboard-view";
+import { DashboardView } from "@/components/crm/views/dashboard-view";
 import React from "react";
 
 export default function DashboardPage() {

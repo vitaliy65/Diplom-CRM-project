@@ -60,7 +60,7 @@ export function AppSidebar({ currentView, onViewChange }: AppSidebarProps) {
           {!collapsed && (
             <div className="flex flex-col">
               <span className="font-semibold text-sidebar-foreground text-sm">
-                СервісЦентр
+                FixFlo
               </span>
               <span className="text-xs text-muted-foreground">CRM System</span>
             </div>

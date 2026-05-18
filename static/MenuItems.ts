@@ -1,4 +1,12 @@
-import { LayoutDashboard, Settings, Ticket, Users, Wrench } from "lucide-react";
+import {
+  LayoutDashboard,
+  Settings,
+  ShieldUser,
+  Ticket,
+  UserCog,
+  Users,
+  WrenchIcon,
+} from "lucide-react";
 
 export const menuItems = [
   {
@@ -23,17 +31,31 @@ export const menuItems = [
     roles: ["admin", "manager"],
   },
   {
+    id: "services",
+    url: "/services",
+    icon: WrenchIcon,
+    label: "Сервіси",
+    roles: ["admin", "manager"],
+  },
+  {
     id: "master",
     url: "/master",
-    icon: Wrench,
+    icon: UserCog,
     label: "Майстер",
     roles: ["admin", "manager", "master"],
   },
   {
     id: "users",
     url: "/users",
-    icon: Settings,
+    icon: ShieldUser,
     label: "Адмін",
     roles: ["admin"],
+  },
+  {
+    id: "settings",
+    url: "/settings",
+    icon: Settings,
+    label: "Налаштування",
+    roles: ["admin", "manager", "master"],
   },
 ];

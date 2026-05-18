@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Command, Search, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface TopBarProps {
   userName: string;
@@ -42,12 +43,18 @@ export function TopBar({ userName, userRole, onCommandOpen }: TopBarProps) {
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-xl bg-primary/20">
-            <Wrench className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+          <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-xl bg-white">
+            <Image
+              src={"/logo/logo-big-no-text.png"}
+              width={512}
+              height={512}
+              alt="logo"
+              className="h-8 w-8 text-primary"
+            />
           </div>
           <div>
             <h1 className="text-base md:text-lg font-semibold text-foreground">
-              СервісЦентр
+              FixFlo
             </h1>
             <p className="hidden sm:block text-xs text-muted-foreground">
               CRM Система

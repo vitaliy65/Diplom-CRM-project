@@ -22,9 +22,9 @@ import {
 import { selectTickets } from "@/store/slices/tickets-slice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import type { Client } from "@/lib/types";
-import { CreateClientDialog } from "../clients-view-components/CreateClientDialog";
-import { ClientCard } from "../clients-view-components/ClientCard";
-import { StatusBadge } from "../tickets-view-components/StatusBadge";
+import { CreateClientDialog } from "../../clients-view-components/CreateClientDialog";
+import { ClientCard } from "../../clients-view-components/ClientCard";
+import { StatusBadge } from "../../tickets-view-components/StatusBadge";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -61,7 +61,7 @@ export function ClientsView() {
 
   return (
     <motion.div
-      className="min-h-screen px-4 pb-8 pt-24 general-view-settings"
+      className="general-view-settings"
       initial="hidden"
       animate="visible"
       variants={containerVariants}

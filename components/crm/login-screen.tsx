@@ -1,26 +1,34 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Spinner } from "@/components/ui/spinner"
-import { Wrench } from "lucide-react"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { loginWithEmail, selectAuthError, selectIsAuthLoading } from "@/store/slices/auth-slice"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
+import { Wrench } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  loginWithEmail,
+  selectAuthError,
+  selectIsAuthLoading,
+} from "@/store/slices/auth-slice";
 
-export function LoginScreen({ onOpenRegister }: { onOpenRegister: () => void }) {
-  const dispatch = useAppDispatch()
-  const isLoading = useAppSelector(selectIsAuthLoading)
-  const authError = useAppSelector(selectAuthError)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+export function LoginScreen({
+  onOpenRegister,
+}: {
+  onOpenRegister: () => void;
+}) {
+  const dispatch = useAppDispatch();
+  const isLoading = useAppSelector(selectIsAuthLoading);
+  const authError = useAppSelector(selectAuthError);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await dispatch(loginWithEmail({ email, password }))
-  }
+    e.preventDefault();
+    await dispatch(loginWithEmail({ email, password }));
+  };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-background p-4 overflow-hidden">
@@ -58,8 +66,10 @@ export function LoginScreen({ onOpenRegister }: { onOpenRegister: () => void }) 
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-foreground">СервісЦентр</h1>
-            <p className="text-sm text-muted-foreground mt-1">CRM система для сервісного центру</p>
+            <h1 className="text-2xl font-bold text-foreground">FixFlo</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              CRM система для сервісного центру
+            </p>
           </div>
 
           {/* Form */}
@@ -140,5 +150,5 @@ export function LoginScreen({ onOpenRegister }: { onOpenRegister: () => void }) 
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

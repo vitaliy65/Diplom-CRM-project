@@ -23,9 +23,9 @@ import {
 } from "@/store/slices/tickets-slice";
 import { selectMasters } from "@/store/slices/users-slice";
 import { selectClients } from "@/store/slices/clients-slice";
-import { KanbanBoard } from "../tickets-view-components/KanbanBoard";
-import { TicketsTable } from "../tickets-view-components/TicketsTable";
-import { CreateTicketDialog } from "../tickets-view-components/CreateTicketDialog";
+import { KanbanBoard } from "../../tickets-view-components/KanbanBoard";
+import { TicketsTable } from "../../tickets-view-components/TicketsTable";
+import { CreateTicketDialog } from "../../tickets-view-components/CreateTicketDialog";
 
 export const containerVariants = {
   hidden: { opacity: 0, scale: 0.9 },
@@ -80,7 +80,7 @@ export function TicketsView() {
   }, [selectedTicketId]);
 
   return (
-    <div className="min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24 general-view-settings">
+    <div className="general-view-settings">
       <div className="mx-auto max-w-7xl md:pl-16 scroll-smooth">
         {/* Header */}
         <motion.div

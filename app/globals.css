@@ -135,7 +135,7 @@
 /* Glassmorphism utilities */
 @layer utilities {
   .glass {
-    background: var(--glass);
+    background: var(--card);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
@@ -202,7 +202,7 @@
   }
 
   .bento-card {
-    @apply rounded-2xl border border-border/50 bg-glass backdrop-blur-sm;
+    @apply rounded-2xl border border-border/50 bg-card backdrop-blur-sm;
     box-shadow:
       0 0 0 1px oklch(0.3 0.01 270 / 0.1),
       0 4px 24px oklch(0 0 0 / 0.2);
@@ -242,5 +242,5 @@
 }
 
 .general-view-settings {
-  @apply max-md:pb-[97px];
+  @apply max-md:pb-[97px] min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24;
 }
