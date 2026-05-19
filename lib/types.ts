@@ -16,6 +16,7 @@ export interface Ticket {
   readyAt: string;
   slaViolation: boolean;
   comments: string[];
+  services: Service[];
 }
 
 export interface Client {

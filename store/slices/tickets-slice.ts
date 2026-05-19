@@ -59,7 +59,12 @@ export const createTicket = createAsyncThunk(
   async (
     payload: Pick<
       Ticket,
-      "clientId" | "clientName" | "clientPhone" | "device" | "problem"
+      | "clientId"
+      | "clientName"
+      | "clientPhone"
+      | "device"
+      | "problem"
+      | "services"
     >,
     { getState, rejectWithValue },
   ) => {

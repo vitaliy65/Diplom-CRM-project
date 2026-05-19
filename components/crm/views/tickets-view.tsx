@@ -119,6 +119,25 @@ export function TicketsView() {
               <CreateTicketDialog
                 onClose={() => setIsCreateDialogOpen(false)}
                 onSubmit={async (payload) => {
+                  const missingFields: string[] = [];
+                  if (!payload.clientId || payload.clientId.trim() === "")
+                    missingFields.push("Клієнт");
+                  if (!payload.clientName || payload.clientName.trim() === "")
+                    missingFields.push("ПІБ клієнта");
+                  if (!payload.clientPhone || payload.clientPhone.trim() === "")
+                    missingFields.push("Телефон");
+                  if (!payload.device || payload.device.trim() === "")
+                    missingFields.push("Пристрій");
+                  if (!payload.services || payload.services.length === 0)
+                    missingFields.push("Сервіси");
+
+                  if (missingFields.length > 0) {
+                    toast.error(
+                      `Будь ласка, заповніть усі обов'язкові поля: ${missingFields.join(", ")}`,
+                    );
+                    return;
+                  }
+
                   const result = await dispatch(createTicket(payload));
                   if (createTicket.fulfilled.match(result)) {
                     toast.success("Заявку збережено");
