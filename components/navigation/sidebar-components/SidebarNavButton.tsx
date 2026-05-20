@@ -21,10 +21,10 @@ export function SidebarNavButton({
     <motion.button
       onClick={onClick}
       className={cn(
-        "relative flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors overflow-hidden",
+        "relative flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors overflow-hidden",
         isActive
           ? "bg-primary/20 text-primary"
-          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground ",
       )}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}

@@ -5,6 +5,7 @@ import {
   Ticket,
   UserCog,
   Users,
+  Warehouse,
   WrenchIcon,
 } from "lucide-react";
 
@@ -38,11 +39,18 @@ export const menuItems = [
     roles: ["admin", "manager"],
   },
   {
+    id: "storage",
+    url: "/storage",
+    icon: Warehouse,
+    label: "Склад",
+    roles: ["admin", "manager"],
+  },
+  {
     id: "master",
     url: "/master",
     icon: UserCog,
     label: "Майстер",
-    roles: ["admin", "manager", "master"],
+    roles: ["master"],
   },
   {
     id: "users",

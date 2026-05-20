@@ -2,12 +2,75 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *), html:not(.dark));
 
+/* LIGHT THEME */
 :root {
+  --background: #fff;
+  --foreground: #121212;
+  --card: #8c6c4c10;
+  --card-10: #f3f0ed;
+  --card-foreground: #121212;
+  --popover: #ecdfd0;
+  --popover-foreground: #3f4a2f;
+  --primary: #3f4a2f;
+  --primary-foreground: #fff;
+  --secondary: #ebcc96;
+  --secondary-foreground: #3f4a2f;
+  --muted: #f5ecd8;
+  --muted-foreground: #121212;
+  --accent: #6baf66;
+  --accent-foreground: #121212;
+  --destructive: #e63946;
+  --destructive-foreground: #fff;
+  --border: #8c6c4c;
+  --input: #e9decd;
+  --ring: #6baf66;
+  --radius: 0.75rem;
+
+  /* Status Accents - tuned to match light & gold theme */
+  --status-received: #f4c97a;
+  --status-in-progress: #bce784;
+  --status-ready: #81ecec;
+  --status-delivered: #6baf66;
+  --status-sla-violation: #e63946;
+
+  /* Glow Colors - harmonize with light palette */
+  --glow-blue: #8bd3fc;
+  --glow-green: #73eda8;
+  --glow-amber: #ffe066;
+  --glow-red: #ff7b7b;
+  --glow-purple: #c89ec4;
+
+  /* Chart colors */
+  --chart-1: #f4c97a;
+  --chart-2: #bce784;
+  --chart-3: #ffe066;
+  --chart-4: #c89ec4;
+  --chart-5: #e63946;
+
+  /* Glassmorphism */
+  --glass: #a97c50;
+  --glass-border: #bc9a79cc;
+
+  /* Sidebar */
+  --sidebar: #e9decd;
+  --sidebar-foreground: #3f4a2f;
+  --sidebar-primary: #3f4a2f;
+  --sidebar-primary-foreground: #fff;
+  --sidebar-accent: #ebcc96;
+  --sidebar-accent-foreground: #3f4a2f;
+  --sidebar-border: #bc9a79;
+  --sidebar-ring: #6baf66;
+}
+
+/* LIGHT THEME */
+.dark {
   /* Corporate Noir - Deep cinematic dark theme */
   --background: oklch(0.08 0.005 270);
   --foreground: oklch(0.95 0 0);
-  --card: oklch(0.12 0.008 270);
+  --card: #0a0a0a;
+  --card-10: #0a0a0a10;
   --card-foreground: oklch(0.95 0 0);
   --popover: oklch(0.1 0.008 270);
   --popover-foreground: oklch(0.95 0 0);
@@ -68,6 +131,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
+  --color-card-10: var(--card-10);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
@@ -147,72 +211,67 @@
   }
 
   .glass-subtle {
-    background: oklch(0.12 0.008 270 / 0.5);
+    /* For dark: glass-morph, for light: warm beige glass */
+    background: color-mix(in oklab, var(--card) 50%, #fff 50%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid oklch(0.25 0.01 270 / 0.2);
+    border: 1px solid color-mix(in oklab, var(--border) 40%, #fff 60%);
   }
 
   .glow-blue {
     box-shadow:
-      0 0 20px oklch(0.7 0.22 250 / 0.3),
-      0 0 40px oklch(0.7 0.22 250 / 0.1);
+      0 0 20px var(--glow-blue, #8bd3fc) 30%,
+      0 0 40px var(--glow-blue, #8bd3fc) 10%;
   }
 
   .glow-green {
     box-shadow:
-      0 0 20px oklch(0.75 0.22 155 / 0.3),
-      0 0 40px oklch(0.75 0.22 155 / 0.1);
+      0 0 20px var(--glow-green, #73eda8) 30%,
+      0 0 40px var(--glow-green, #73eda8) 10%;
   }
 
   .glow-amber {
     box-shadow:
-      0 0 20px oklch(0.78 0.2 85 / 0.3),
-      0 0 40px oklch(0.78 0.2 85 / 0.1);
+      0 0 20px var(--glow-amber, #ffe066) 30%,
+      0 0 40px var(--glow-amber, #ffe066) 10%;
   }
 
   .glow-red {
     box-shadow:
-      0 0 20px oklch(0.65 0.28 25 / 0.3),
-      0 0 40px oklch(0.65 0.28 25 / 0.1);
+      0 0 20px var(--glow-red, #ff7b7b) 30%,
+      0 0 40px var(--glow-red, #ff7b7b) 10%;
   }
 
   .dot-glow-blue {
     box-shadow:
-      0 0 8px oklch(0.72 0.2 250 / 0.8),
-      0 0 16px oklch(0.72 0.2 250 / 0.4);
+      0 0 8px var(--glow-blue, #8bd3fc) 80%,
+      0 0 16px var(--glow-blue, #8bd3fc) 40%;
   }
 
   .dot-glow-green {
     box-shadow:
-      0 0 8px oklch(0.78 0.2 155 / 0.8),
-      0 0 16px oklch(0.78 0.2 155 / 0.4);
+      0 0 8px var(--glow-green, #73eda8) 80%,
+      0 0 16px var(--glow-green, #73eda8) 40%;
   }
 
   .dot-glow-amber {
     box-shadow:
-      0 0 8px oklch(0.78 0.2 85 / 0.8),
-      0 0 16px oklch(0.78 0.2 85 / 0.4);
+      0 0 8px var(--glow-amber, #ffe066) 80%,
+      0 0 16px var(--glow-amber, #ffe066) 40%;
   }
 
   .dot-glow-red {
     box-shadow:
-      0 0 8px oklch(0.65 0.28 25 / 0.8),
-      0 0 16px oklch(0.65 0.28 25 / 0.4);
+      0 0 8px var(--glow-red, #ff7b7b) 80%,
+      0 0 16px var(--glow-red, #ff7b7b) 40%;
   }
 
   .bento-card {
-    @apply rounded-2xl border border-border/50 bg-card backdrop-blur-sm;
-    box-shadow:
-      0 0 0 1px oklch(0.3 0.01 270 / 0.1),
-      0 4px 24px oklch(0 0 0 / 0.2);
+    @apply rounded-2xl border border-border box-border bg-card backdrop-blur-sm;
   }
 
   .bento-card:hover {
-    border-color: oklch(0.35 0.02 270 / 0.5);
-    box-shadow:
-      0 0 0 1px oklch(0.35 0.02 270 / 0.2),
-      0 8px 32px oklch(0 0 0 / 0.3);
+    @apply scale-102 shadow-2xl transition-all duration-150;
   }
 
   .card-lift:hover {
@@ -232,15 +291,15 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: oklch(0.25 0.01 270 / 0.5);
+    background: var(--border, #bc9a79);
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.3 0.01 270 / 0.7);
+    background: color-mix(in oklab, var(--border) 80%, #fff 20%);
   }
 }
 
 .general-view-settings {
-  @apply max-md:pb-[97px] min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24;
+  @apply max-md:pb-[97px] min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24 overflow-hidden;
 }

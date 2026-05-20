@@ -17,6 +17,13 @@ export interface Ticket {
   slaViolation: boolean;
   comments: string[];
   services: Service[];
+  usedParts: UsedPartsTicket[];
+}
+
+export interface UsedPartsTicket {
+  id: string;
+  name: string;
+  quantity: string;
 }
 
 export interface Client {
@@ -51,6 +58,14 @@ export interface StatusLog {
   changedBy: string;
   changedByName: string;
   createdAt: string;
+}
+
+export interface SpareParts {
+  id: string;
+  name: string;
+  description: string;
+  count: number;
+  priceForOne: number;
 }
 
 export const statusLabels: Record<TicketStatus, string> = {

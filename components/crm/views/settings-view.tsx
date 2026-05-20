@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, User, Mail, Key } from "lucide-react";
-import { containerVariants } from "@/components/crm/views/tickets-view";
 import { itemVariants } from "@/components/crm/views/dashboard-view";
 import { useSettingsForm } from "@/hooks/use-settings";
+import { containerVariants } from "@/static/Animations";
 
 export default function SettingsView() {
   const {

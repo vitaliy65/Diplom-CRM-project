@@ -25,19 +25,7 @@ import type { Client } from "@/lib/types";
 import { CreateClientDialog } from "../../clients-view-components/CreateClientDialog";
 import { ClientCard } from "../../clients-view-components/ClientCard";
 import { StatusBadge } from "../../tickets-view-components/StatusBadge";
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
+import { containerVariants, variantItem } from "@/static/Animations";
 
 export function ClientsView() {
   const dispatch = useAppDispatch();
@@ -68,7 +56,7 @@ export function ClientsView() {
     >
       <div className="mx-auto max-w-7xl md:pl-16">
         {/* Header */}
-        <motion.div variants={itemVariants} className="mb-6">
+        <motion.div variants={variantItem} className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -118,7 +106,7 @@ export function ClientsView() {
         )}
 
         {/* Search */}
-        <motion.div variants={itemVariants} className="bento-card p-4 mb-6">
+        <motion.div variants={variantItem} className="bento-card p-4 mb-6">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -149,7 +137,7 @@ export function ClientsView() {
 
         {filteredClients.length === 0 && (
           <motion.div
-            variants={itemVariants}
+            variants={variantItem}
             className="bento-card p-8 text-center"
           >
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

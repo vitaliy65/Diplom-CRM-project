@@ -2,42 +2,35 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Layers } from "lucide-react";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogFooter,
-  DialogTitle,
-  DialogHeader,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Plus, Layers, Trash2 } from "lucide-react";
+import { containerVariants, variantItem } from "@/static/Animations";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
-  createService,
-  deleteService,
-  selectServices,
-  selectServicesLoading,
-  selectServicesSaving,
-} from "@/store/slices/services-slice";
+  selectStorage,
+  selectStorageLoading,
+  selectStorageSaving,
+  createSparePart,
+  deleteSparePart,
+} from "@/store/slices/storage-slice";
+import type { SpareParts } from "@/lib/types";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ServiceForm } from "@/components/service-view-components/ServiceForm";
-import type { Service } from "@/lib/types";
-import { EditServiceDialog } from "@/components/service-view-components/EditServiceDialog";
-import { containerVariants, variantItem } from "@/static/Animations";
 import ModalDialogConateiner from "@/components/ModalDialogConateiner";
+import CreateStorageDialog from "@/components/storage-view-components/CreateStorageDialog";
+import { Dialog, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { EditStorageDialog } from "@/components/storage-view-components/EditStorageDialog";
 
-export default function ServicesView() {
+export default function StorageView() {
   const dispatch = useAppDispatch();
-  const servicesRaw = useAppSelector(selectServices) as Service[];
-  const loading = useAppSelector(selectServicesLoading);
-  const saving = useAppSelector(selectServicesSaving);
+  const storageRaw = useAppSelector(selectStorage) as SpareParts[];
+  const loading = useAppSelector(selectStorageLoading);
+  const saving = useAppSelector(selectStorageSaving);
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingService, setEditingService] = useState<null | Service>(null);
+  const [editingStorage, setEditingStorage] = useState<SpareParts | null>(null);
 
   // Prepare list to render
-  const services = Array.isArray(servicesRaw) ? servicesRaw : [];
+  const storage = Array.isArray(storageRaw) ? storageRaw : [];
 
   return (
     <motion.div
@@ -54,11 +47,11 @@ export default function ServicesView() {
               <div className="flex items-center gap-2 mb-1">
                 <Layers className="h-6 w-6 text-primary" />
                 <h1 className="text-3xl font-bold text-foreground">
-                  Сервіси / Послуги
+                  Склад / Запчастини
                 </h1>
               </div>
               <p className="text-muted-foreground">
-                Перелік усіх послуг сервісного центру
+                Перелік запчастин та матеріалів на складі сервісного центру
               </p>
             </div>
             <Dialog
@@ -72,31 +65,26 @@ export default function ServicesView() {
                 >
                   <Button className="bg-primary hover:bg-primary/90 gap-2">
                     <Plus className="h-4 w-4" />
-                    Додати сервіс
+                    Додати запчастину
                   </Button>
                 </motion.div>
               </DialogTrigger>
               {isCreateDialogOpen && (
                 <ModalDialogConateiner
-                  title="Новий сервіс"
-                  description="Додайте новий сервіс до бази даних"
+                  title="Нова запчастина"
+                  description="Додайте нову запчастину на склад"
                 >
-                  <ServiceForm
-                    saving={saving}
+                  <CreateStorageDialog
+                    onClose={() => setIsCreateDialogOpen(false)}
                     onSubmit={async (data) => {
-                      const payload = {
-                        ...data,
-                        final_price: data.base_price,
-                        discount: 0,
-                      };
-                      const result = await dispatch(createService(payload));
-                      if (createService.fulfilled.match(result)) {
-                        toast.success("Сервіс додано");
+                      const result = await dispatch(createSparePart(data));
+                      if (createSparePart.fulfilled.match(result)) {
+                        toast.success("Запчастину додано");
                         setIsCreateDialogOpen(false);
                       } else {
                         toast.error(
                           (result.payload as string) ||
-                            "Помилка під час додавання сервісу",
+                            "Помилка під час додавання запчастини",
                         );
                       }
                     }}
@@ -123,16 +111,16 @@ export default function ServicesView() {
         >
           {loading ? (
             <p className="text-muted-foreground px-6 py-4">
-              Завантаження сервісів...
+              Завантаження складу...
             </p>
-          ) : services.length === 0 ? (
+          ) : storage.length === 0 ? (
             <div className="text-center py-12">
               <Layers className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
               <p className="text-md font-medium text-foreground">
-                Сервісів не знайдено
+                Запчастин не знайдено
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                Додайте перший сервіс для початку роботи
+                Додайте першу запчастину для початку роботи
               </p>
             </div>
           ) : (
@@ -140,23 +128,19 @@ export default function ServicesView() {
               <thead>
                 <tr className="border-b border-border/50 text-muted-foreground">
                   <th className="text-left px-4 py-3 font-normal">Назва</th>
+                  <th className="text-left px-4 py-3 font-normal">Опис</th>
+                  <th className="text-left px-4 py-3 font-normal">Кількість</th>
                   <th className="text-left px-4 py-3 font-normal">
-                    Базова вартість (₴)
-                  </th>
-                  <th className="text-left px-4 py-3 font-normal">
-                    Фінальна вартість (₴)
-                  </th>
-                  <th className="text-left px-4 py-3 font-normal">
-                    Знижка (%)
+                    Ціна за одиницю (₴)
                   </th>
                   <th className="text-right px-4 py-3 font-normal"></th>
                 </tr>
               </thead>
               <tbody>
                 <AnimatePresence>
-                  {services.map((service) => (
+                  {storage.map((item) => (
                     <motion.tr
-                      key={service.id}
+                      key={item.id}
                       layout
                       initial={{ opacity: 0, scale: 1 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -171,38 +155,21 @@ export default function ServicesView() {
                         damping: 24,
                       }}
                       className="border-b border-border/40 cursor-pointer"
-                      onClick={() => {
-                        setEditingService({
-                          id: service.id,
-                          name: service.name,
-                          base_price:
-                            typeof service.base_price === "number"
-                              ? service.base_price
-                              : (service.final_price ?? 0),
-                          final_price:
-                            typeof service.final_price === "number"
-                              ? service.final_price
-                              : service.base_price,
-                          discount:
-                            typeof service.discount === "number"
-                              ? service.discount
-                              : 0,
-                        });
-                      }}
+                      onClick={() => setEditingStorage(item)}
                     >
                       <td className="px-4 py-3">
                         <span className="font-medium text-foreground">
-                          {service.name}
+                          {item.name}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-foreground">
-                        {service.base_price} ₴
+                        {item.description}
                       </td>
                       <td className="px-4 py-3 text-foreground">
-                        {service.final_price} ₴
+                        {item.count}
                       </td>
                       <td className="px-4 py-3 text-foreground">
-                        {service.discount} %
+                        {item.priceForOne} ₴
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Button
@@ -212,18 +179,18 @@ export default function ServicesView() {
                           onClick={async (e) => {
                             e.stopPropagation();
                             const result = await dispatch(
-                              deleteService(service.id),
+                              deleteSparePart(item.id),
                             );
-                            if (deleteService.fulfilled.match(result)) {
-                              toast.success("Сервіс видалено");
+                            if (deleteSparePart.fulfilled.match(result)) {
+                              toast.success("Запчастину видалено");
                             } else {
                               toast.error(
                                 (result.payload as string) ||
-                                  "Помилка видалення сервісу",
+                                  "Помилка видалення запчастини",
                               );
                             }
                           }}
-                          aria-label="Видалити сервіс"
+                          aria-label="Видалити запчастину"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -235,14 +202,14 @@ export default function ServicesView() {
             </table>
           )}
         </motion.div>
-
-        {/* Edit Service Modal */}
-        <EditServiceDialog
-          editingService={editingService}
-          setEditingService={setEditingService}
-          saving={saving}
-        />
       </div>
+
+      {/* Edit Storage Modal */}
+      <EditStorageDialog
+        editingStorage={editingStorage}
+        setEditingStorage={setEditingStorage}
+        saving={saving}
+      />
     </motion.div>
   );
 }

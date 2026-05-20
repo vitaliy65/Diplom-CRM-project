@@ -56,18 +56,7 @@ export const subscribeTickets = createAsyncThunk(
 
 export const createTicket = createAsyncThunk(
   "tickets/create",
-  async (
-    payload: Pick<
-      Ticket,
-      | "clientId"
-      | "clientName"
-      | "clientPhone"
-      | "device"
-      | "problem"
-      | "services"
-    >,
-    { getState, rejectWithValue },
-  ) => {
+  async (payload: Partial<Ticket>, { getState, rejectWithValue }) => {
     if (!db || !isFirebaseConfigured) {
       return rejectWithValue("Firebase не налаштований.");
     }
@@ -85,12 +74,16 @@ export const createTicket = createAsyncThunk(
         slaViolation: false,
         comments: [],
       });
-      const existing = (getState() as RootState).clients.items.find(
-        (c) => c.id === payload.clientId,
-      );
-      await updateDoc(doc(db, "clients", payload.clientId), {
-        ticketCount: (existing?.ticketCount || 0) + 1,
-      });
+
+      const clientId = payload.clientId as string;
+      if (clientId) {
+        const existing = (getState() as RootState).clients.items.find(
+          (c) => c.id === clientId,
+        );
+        await updateDoc(doc(collection(db, "clients"), clientId), {
+          ticketCount: (existing?.ticketCount || 0) + 1,
+        });
+      }
     } catch {
       return rejectWithValue("Не вдалося створити заявку.");
     }

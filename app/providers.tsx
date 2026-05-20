@@ -10,6 +10,8 @@ import { subscribeTickets } from "@/store/slices/tickets-slice";
 import { subscribeClients } from "@/store/slices/clients-slice";
 import { subscribeUsers } from "@/store/slices/users-slice";
 import { subscribeServices } from "@/store/slices/services-slice";
+import { ThemeProvider } from "next-themes";
+import { subscribeStorage } from "@/store/slices/storage-slice";
 
 function AppBootstrap() {
   const dispatch = useAppDispatch();
@@ -20,6 +22,7 @@ function AppBootstrap() {
     dispatch(subscribeClients());
     dispatch(subscribeUsers());
     dispatch(subscribeServices());
+    dispatch(subscribeStorage());
   }, [dispatch]);
 
   return null;
@@ -29,7 +32,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <AppBootstrap />
-      {children}
+      <ThemeProvider>{children}</ThemeProvider>
       <Toaster richColors position="top-right" />
     </Provider>
   );

@@ -6,6 +6,7 @@ import usersReducer from "@/store/slices/users-slice";
 import selectedTicketReducer from "@/store/slices/selected-ticket-slice";
 import { viewReducer } from "@/store/slices/view-slice";
 import servicesReducer from "@/store/slices/services-slice";
+import storageReducer from "@/store/slices/storage-slice";
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     selectedTicket: selectedTicketReducer,
     view: viewReducer,
     services: servicesReducer,
+    storage: storageReducer,
   },
 });
 

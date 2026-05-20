@@ -6,16 +6,8 @@ import { useAppSelector } from "@/store/hooks";
 import { selectTickets } from "@/store/slices/tickets-slice";
 import { selectCurrentUser } from "@/store/slices/auth-slice";
 import { SwipeableTicketCard } from "../../master-view-components/SwipeableTicketCard";
+import { containerVariants, variantItem } from "@/static/Animations";
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
 export function MasterView() {
   const currentUser = useAppSelector(selectCurrentUser);
   const tickets = useAppSelector(selectTickets);
@@ -38,7 +30,7 @@ export function MasterView() {
     >
       <div className="mx-auto max-w-2xl md:pl-16">
         {/* Header */}
-        <motion.div variants={itemVariants} className="mb-6">
+        <motion.div variants={variantItem} className="mb-6">
           <div className="flex items-center gap-2 mb-1">
             <Wrench className="h-6 w-6 text-primary" />
             <h1 className="text-3xl font-bold text-foreground">Робоче місце</h1>
@@ -48,7 +40,7 @@ export function MasterView() {
 
         {/* Stats */}
         <motion.div
-          variants={itemVariants}
+          variants={variantItem}
           className="grid grid-cols-3 gap-3 mb-6"
         >
           <div className="bento-card p-4 text-center">
@@ -81,7 +73,7 @@ export function MasterView() {
         </motion.div>
 
         {/* Swipe Hint */}
-        <motion.div variants={itemVariants} className="mb-4 text-center">
+        <motion.div variants={variantItem} className="mb-4 text-center">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
             <ChevronRight className="h-3 w-3" />
             Свайп вправо для швидкого завершення
@@ -102,7 +94,7 @@ export function MasterView() {
 
           {assignedTickets.length === 0 && (
             <motion.div
-              variants={itemVariants}
+              variants={variantItem}
               className="bento-card p-8 text-center"
             >
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-glow-green/20 mx-auto mb-4">

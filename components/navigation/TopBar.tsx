@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Command, Search, Wrench } from "lucide-react";
+import { Command, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface TopBarProps {
   userName: string;
@@ -34,7 +35,7 @@ export function TopBar({ userName, userRole, onCommandOpen }: TopBarProps) {
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed left-0 right-0 top-0 z-40 px-4 py-3 md:py-4 bg-glass/50 border-b border-border backdrop-blur-xl"
+      className="fixed left-0 right-0 top-0 z-40 px-4 py-3 md:py-4 bg-card border-b border-border backdrop-blur-xl"
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <motion.div
@@ -62,21 +63,24 @@ export function TopBar({ userName, userRole, onCommandOpen }: TopBarProps) {
           </div>
         </motion.div>
 
-        <motion.button
-          onClick={onCommandOpen}
-          className="glass hidden sm:flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-muted-foreground hover:border-primary/30 hover:text-foreground"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Search className="h-4 w-4" />
-          <span>Пошук...</span>
-          <kbd className="ml-2 flex items-center gap-0.5 rounded-lg bg-secondary/50 px-2 py-0.5 text-xs">
-            <Command className="h-3 w-3" />K
-          </kbd>
-        </motion.button>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <motion.button
+            onClick={onCommandOpen}
+            className="glass hidden sm:flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-muted-foreground hover:border-primary/30 hover:text-foreground"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Search className="h-4 w-4" />
+            <span>Пошук...</span>
+            <kbd className="ml-2 flex items-center gap-0.5 rounded-lg bg-secondary/50 px-2 py-0.5 text-xs">
+              <Command className="h-3 w-3" />K
+            </kbd>
+          </motion.button>
+          <ThemeToggle />
+        </div>
 
         <motion.div
           className="flex items-center gap-2 md:gap-3"

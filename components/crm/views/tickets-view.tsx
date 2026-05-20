@@ -26,21 +26,7 @@ import { selectClients } from "@/store/slices/clients-slice";
 import { KanbanBoard } from "../../tickets-view-components/KanbanBoard";
 import { TicketsTable } from "../../tickets-view-components/TicketsTable";
 import { CreateTicketDialog } from "../../tickets-view-components/CreateTicketDialog";
-
-export const containerVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: [50, 0],
-    transition: { staggerChildren: 0.1 },
-  },
-};
-
-const variantItem = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-};
+import { containerVariants, variantItem } from "@/static/Animations";
 
 export function TicketsView() {
   const dispatch = useAppDispatch();
@@ -163,14 +149,14 @@ export function TicketsView() {
                   placeholder="ID, клієнт, телефон..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-background/50 border-border focus:border-primary/50"
+                  className="pl-9 bg-background/50! border-border focus:border-primary/50"
                 />
               </div>
 
               {/* Filters Row */}
               <div className="flex flex-wrap gap-2 md:gap-3 items-center">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-36 bg-background/50 border-border text-sm">
+                  <SelectTrigger className="w-full sm:w-36 bg-background/50! border-border text-sm">
                     <SelectValue placeholder="Статус" />
                   </SelectTrigger>
                   <SelectContent className="glass">
@@ -183,7 +169,7 @@ export function TicketsView() {
                 </Select>
 
                 <Select value={masterFilter} onValueChange={setMasterFilter}>
-                  <SelectTrigger className="w-full sm:w-36 bg-background/50 border-border text-sm">
+                  <SelectTrigger className="w-full sm:w-36 bg-background/50! border-border text-sm">
                     <SelectValue placeholder="Майстер" />
                   </SelectTrigger>
                   <SelectContent className="glass">
@@ -196,7 +182,7 @@ export function TicketsView() {
                   </SelectContent>
                 </Select>
 
-                <div className="flex gap-1 p-1 bg-background/50 rounded-xl border border-border ml-auto">
+                <div className="flex gap-1 p-1 bg-background/50! rounded-xl border border-border ml-auto">
                   <Button
                     variant="ghost"
                     size="sm"
