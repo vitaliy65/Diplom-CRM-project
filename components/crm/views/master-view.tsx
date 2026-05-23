@@ -28,7 +28,7 @@ export function MasterView() {
       animate="visible"
       variants={containerVariants}
     >
-      <div className="mx-auto max-w-2xl md:pl-16">
+      <div className="view-container">
         {/* Header */}
         <motion.div variants={variantItem} className="mb-6">
           <div className="flex items-center gap-2 mb-1">

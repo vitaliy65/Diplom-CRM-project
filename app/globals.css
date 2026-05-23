@@ -6,34 +6,33 @@
 
 /* LIGHT THEME */
 :root {
-  --background: #fff;
+  --background: #fafafa;
   --foreground: #121212;
-  --card: #8c6c4c10;
-  --card-10: #f3f0ed;
+  --card: #ffffff;
   --card-foreground: #121212;
   --popover: #ecdfd0;
   --popover-foreground: #3f4a2f;
   --primary: #3f4a2f;
   --primary-foreground: #fff;
-  --secondary: #ebcc96;
+  --secondary: #d3eef8;
   --secondary-foreground: #3f4a2f;
-  --muted: #f5ecd8;
-  --muted-foreground: #121212;
-  --accent: #6baf66;
+  --muted: #3f4a2f35;
+  --muted-foreground: #3f4a2f;
+  --accent: #3f4a2f10;
   --accent-foreground: #121212;
   --destructive: #e63946;
   --destructive-foreground: #fff;
-  --border: #8c6c4c;
+  --border: #ececec;
   --input: #e9decd;
   --ring: #6baf66;
   --radius: 0.75rem;
 
   /* Status Accents - tuned to match light & gold theme */
-  --status-received: #f4c97a;
-  --status-in-progress: #bce784;
-  --status-ready: #81ecec;
-  --status-delivered: #6baf66;
-  --status-sla-violation: #e63946;
+  --status-received: #ca802a;
+  --status-in-progress: #238aca;
+  --status-ready: #30c268;
+  --status-delivered: hsl(278, 59%, 43%);
+  --status-sla-violation: #ac2727;
 
   /* Glow Colors - harmonize with light palette */
   --glow-blue: #8bd3fc;
@@ -50,8 +49,7 @@
   --chart-5: #e63946;
 
   /* Glassmorphism */
-  --glass: #a97c50;
-  --glass-border: #bc9a79cc;
+  --glass: #ffffff;
 
   /* Sidebar */
   --sidebar: #e9decd;
@@ -77,7 +75,7 @@
   --primary: oklch(0.7 0.18 250);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.18 0.01 270);
-  --secondary-foreground: oklch(0.92 0 0);
+  --secondary-foreground: oklch(0.7 0.18 250);
   --muted: oklch(0.2 0.008 270);
   --muted-foreground: oklch(0.55 0 0);
   --accent: oklch(0.16 0.01 270);
@@ -202,7 +200,7 @@
     background: var(--card);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--border);
   }
 
   .glass-original {
@@ -267,11 +265,23 @@
   }
 
   .bento-card {
-    @apply rounded-2xl border border-border box-border bg-card backdrop-blur-sm;
+    @apply rounded-2xl border border-border box-border bg-card backdrop-blur-sm shadow-md;
   }
 
   .bento-card:hover {
-    @apply scale-102 shadow-2xl transition-all duration-150;
+    @apply scale-101 shadow-xl transition-all duration-150;
+  }
+
+  .button-el {
+    @apply border border-border box-border bg-card shadow-md text-foreground;
+  }
+
+  .button-el:hover {
+    @apply scale-105 cursor-pointer bg-card transition-all duration-150;
+  }
+
+  .nav-sidebar {
+    @apply rounded-2xl border border-border box-border bg-card backdrop-blur-sm shadow-md;
   }
 
   .card-lift:hover {
@@ -301,5 +311,13 @@
 }
 
 .general-view-settings {
-  @apply max-md:pb-[97px] min-h-screen px-4 pb-24 md:pb-8 pt-20 md:pt-24 overflow-hidden;
+  @apply max-md:pb-[97px] min-h-screen w-full px-4 pb-24 md:pb-8 pt-20 md:pt-24 overflow-hidden flex flex-col;
+}
+
+.view-container {
+  @apply mx-2 sm:mx-4 md:mx-19 xl:mx-48 scroll-smooth h-full flex flex-1 flex-col rounded-2xl border border-border bg-card;
+}
+
+.view-box {
+  @apply md:px-8 md:py-4;
 }

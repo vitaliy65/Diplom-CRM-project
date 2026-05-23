@@ -12,6 +12,8 @@ import { subscribeUsers } from "@/store/slices/users-slice";
 import { subscribeServices } from "@/store/slices/services-slice";
 import { ThemeProvider } from "next-themes";
 import { subscribeStorage } from "@/store/slices/storage-slice";
+import ViewLocker from "./viewLocker";
+import QueryProvider from "./QueryProvider";
 
 function AppBootstrap() {
   const dispatch = useAppDispatch();
@@ -32,8 +34,12 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <AppBootstrap />
-      <ThemeProvider>{children}</ThemeProvider>
-      <Toaster richColors position="top-right" />
+      <QueryProvider>
+        <ThemeProvider>
+          <ViewLocker>{children}</ViewLocker>
+        </ThemeProvider>
+        <Toaster richColors position="top-right" />
+      </QueryProvider>
     </Provider>
   );
 }

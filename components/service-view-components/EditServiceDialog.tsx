@@ -1,7 +1,7 @@
 import { useAppDispatch } from "@/store/hooks";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { AnimatePresence } from "framer-motion";
-import { ServiceForm } from "./ServiceForm";
+import { CreateServiceDialog } from "./CreateServiceDialog";
 import { updateService } from "@/store/slices/services-slice";
 import { toast } from "sonner";
 import { Service } from "@/lib/types";
@@ -31,7 +31,7 @@ export function EditServiceDialog({
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 Редагування сервісу
               </h3>
-              <ServiceForm
+              <CreateServiceDialog
                 initial={editingService}
                 saving={saving}
                 onSubmit={async (data) => {

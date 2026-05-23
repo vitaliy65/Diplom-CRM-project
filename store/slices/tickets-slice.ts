@@ -10,18 +10,27 @@ import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
 import type { Ticket, TicketStatus, UserRole } from "@/lib/types";
 
+// New pagination state
 type TicketsState = {
   items: Ticket[];
   loading: boolean;
   saving: boolean;
   error: string | null;
+
+  // Пагинация
+  currentPage: number;
+  rowsPerPage: number;
 };
+
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 const initialState: TicketsState = {
   items: [],
   loading: true,
   saving: false,
   error: null,
+  currentPage: 1, // Добавлено
+  rowsPerPage: DEFAULT_ROWS_PER_PAGE, // Добавлено, можно менять и в UI
 };
 
 let unsubscribeTickets: (() => void) | null = null;
@@ -157,6 +166,14 @@ const ticketsSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    // Добавляем reducers для пагинации
+    setCurrentPage: (state, action: { payload: number }) => {
+      state.currentPage = action.payload;
+    },
+    setRowsPerPage: (state, action: { payload: number }) => {
+      state.rowsPerPage = action.payload;
+      state.currentPage = 1; // сброс на первую страницу при смене rowsPerPage
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -188,9 +205,27 @@ const ticketsSlice = createSlice({
   },
 });
 
+// Селекторы для пагинации
 export const selectTickets = (state: RootState) => state.tickets.items;
 export const selectTicketsLoading = (state: RootState) => state.tickets.loading;
 export const selectTicketsSaving = (state: RootState) => state.tickets.saving;
 export const selectTicketsError = (state: RootState) => state.tickets.error;
+
+// Новый селектор для пагинированных данных (на текущей странице)
+export const selectPaginatedTickets = (state: RootState) => {
+  const { items, currentPage, rowsPerPage } = state.tickets;
+  const startIdx = (currentPage - 1) * rowsPerPage;
+  const endIdx = startIdx + rowsPerPage;
+  return items.slice(startIdx, endIdx);
+};
+export const selectTicketsTotalRows = (state: RootState) =>
+  state.tickets.items.length;
+export const selectTicketsCurrentPage = (state: RootState) =>
+  state.tickets.currentPage;
+export const selectTicketsRowsPerPage = (state: RootState) =>
+  state.tickets.rowsPerPage;
+
+// Экспортируем actions для управления пагинацией
+export const { setCurrentPage, setRowsPerPage } = ticketsSlice.actions;
 
 export default ticketsSlice.reducer;

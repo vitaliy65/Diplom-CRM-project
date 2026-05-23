@@ -7,7 +7,7 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import { toast } from "sonner";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { changeTicketStatus } from "@/store/slices/tickets-slice";
 import { TicketStatus, Service, Ticket } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,7 @@ export function SwipeableTicketCard({
   const [status, setStatus] = useState<TicketStatus>(ticket.status);
   const [comment, setComment] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
+  const services = useAppSelector((s) => s.services.items);
 
   const x = useMotionValue(0);
   const background = useTransform(
@@ -172,7 +173,11 @@ export function SwipeableTicketCard({
                 </div>
 
                 {/* Services Card List */}
-                <ServiceList services={ticket.services as Service[]} />
+                <ServiceList
+                  services={services.filter((s) =>
+                    ticket.services.includes(s.id),
+                  )}
+                />
 
                 {/* Comments */}
                 <CommentsList comments={ticket.comments} />

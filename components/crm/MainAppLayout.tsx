@@ -24,7 +24,6 @@ export default function MainAppLayout({ children }: { children: ReactNode }) {
   const activeView = useAppSelector(selectActiveView);
 
   if (!initialized) {
-    console.log("[CRMPage] Waiting for initialization...");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner />
@@ -33,7 +32,6 @@ export default function MainAppLayout({ children }: { children: ReactNode }) {
   }
 
   if (!user) {
-    console.log("[CRMPage] No user, authMode:", authMode);
     return authMode === "login" ? (
       <LoginScreen onOpenRegister={() => setAuthMode("register")} />
     ) : (

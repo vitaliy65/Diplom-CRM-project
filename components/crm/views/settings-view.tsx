@@ -30,7 +30,7 @@ export default function SettingsView() {
       animate="visible"
       variants={containerVariants}
     >
-      <div className="mx-auto max-w-xl w-full md:pl-16">
+      <div className="view-container">
         {/* Header */}
         <motion.div variants={itemVariants} className="mb-6">
           <div className="flex items-center gap-2 mb-1">

@@ -35,7 +35,7 @@ export function TicketCard({
       whileHover={{ y: -2 }}
     >
       {/* Card Content */}
-      <div className="space-y-2 md:space-y-3 rounded-xl border border-border/50 bg-glass/70 p-3 md:p-4 backdrop-blur-3xl">
+      <div className="space-y-2 md:space-y-3 bento-card p-3 md:p-4 backdrop-blur-3xl">
         {/* Header */}
         <div className="flex items-start justify-between">
           <span className="font-mono text-[10px] md:text-xs text-muted-foreground">

@@ -34,12 +34,12 @@ export default function StorageView() {
 
   return (
     <motion.div
-      className="general-view-settings"
+      className="view-container"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      <div className="mx-auto max-w-4xl md:pl-16">
+      <div className="view-container">
         {/* Header */}
         <motion.div variants={variantItem} className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

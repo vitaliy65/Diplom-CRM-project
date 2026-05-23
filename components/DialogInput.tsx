@@ -5,7 +5,7 @@ import { Input } from "./ui/input";
 interface DialogInputI {
   name: string;
   label: string;
-  value: string;
+  value: string | number;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;

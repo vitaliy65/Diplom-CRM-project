@@ -154,7 +154,7 @@ export function DashboardView() {
         _dashboardAnimated = true;
       }}
     >
-      <div className="mx-auto max-w-7xl md:pl-16">
+      <div className="view-container">
         <motion.div variants={itemVariants} className="mb-4 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
             Дашборд

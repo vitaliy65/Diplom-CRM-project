@@ -16,7 +16,7 @@ export interface Ticket {
   readyAt: string;
   slaViolation: boolean;
   comments: string[];
-  services: Service[];
+  services: string[];
   usedParts: UsedPartsTicket[];
 }
 

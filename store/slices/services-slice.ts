@@ -12,18 +12,25 @@ import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
 import type { Service, UserRole } from "@/lib/types";
 
+// Добавляем поля пагинации в стейт
 type ServicesState = {
   items: Service[];
   loading: boolean;
   saving: boolean;
   error: string | null;
+  currentPage: number;
+  rowsPerPage: number;
 };
+
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 const initialState: ServicesState = {
   items: [],
   loading: true,
   saving: false,
   error: null,
+  currentPage: 1,
+  rowsPerPage: DEFAULT_ROWS_PER_PAGE,
 };
 
 let unsubscribeServices: (() => void) | null = null;
@@ -86,7 +93,6 @@ export const updateService = createAsyncThunk(
     if (!canManageServices(role)) {
       return rejectWithValue("Недостатньо прав для редагування послуги.");
     }
-    console.log(payload.data);
     try {
       await updateDoc(doc(db, "services", payload.id), payload.data);
     } catch {
@@ -122,6 +128,13 @@ const servicesSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    setCurrentPage: (state, action: { payload: number }) => {
+      state.currentPage = action.payload;
+    },
+    setRowsPerPage: (state, action: { payload: number }) => {
+      state.rowsPerPage = action.payload;
+      state.currentPage = 1; // сброс на первую страницу при смене rowsPerPage
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -156,10 +169,27 @@ const servicesSlice = createSlice({
   },
 });
 
+// Селекторы для пагинации
 export const selectServices = (state: RootState) => state.services.items;
 export const selectServicesLoading = (state: RootState) =>
   state.services.loading;
 export const selectServicesSaving = (state: RootState) => state.services.saving;
 export const selectServicesError = (state: RootState) => state.services.error;
+
+export const selectPaginatedServices = (state: RootState) => {
+  const { items, currentPage, rowsPerPage } = state.services;
+  const startIdx = (currentPage - 1) * rowsPerPage;
+  const endIdx = startIdx + rowsPerPage;
+  return items.slice(startIdx, endIdx);
+};
+export const selectServicesTotalRows = (state: RootState) =>
+  state.services.items.length;
+export const selectServicesCurrentPage = (state: RootState) =>
+  state.services.currentPage;
+export const selectServicesRowsPerPage = (state: RootState) =>
+  state.services.rowsPerPage;
+
+// Экспортируем actions для управления пагинацией
+export const { setCurrentPage, setRowsPerPage } = servicesSlice.actions;
 
 export default servicesSlice.reducer;

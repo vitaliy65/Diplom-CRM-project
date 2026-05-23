@@ -56,7 +56,7 @@ export function UsersView() {
       animate="visible"
       variants={containerVariants}
     >
-      <div className="mx-auto max-w-7xl md:pl-16">
+      <div className="view-container">
         {/* Header */}
         <motion.div variants={variantItem} className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -174,3 +174,32 @@ export function UsersView() {
     </motion.div>
   );
 }
+
+/*"use client";
+
+import { useEffect } from "react";
+import { useAppSelector } from "@/store/hooks";
+import ViewContainer from "@/components/static/ViewContainer";
+import UsersContainerLayout from "@/components/users-view-components/UsersContainerLayout";
+
+export function UsersView() {
+  const selectedUserId = useAppSelector((s) => s.selectedClient.id);
+  useEffect(() => {
+    if (selectedUserId) {
+      const el = document.getElementById("selected-user");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [selectedUserId]);
+
+  return (
+    <ViewContainer
+      title="Користувачі"
+      description="Адмін панель управління користувачами"
+    >
+      <UsersContainerLayout />
+    </ViewContainer>
+  );
+}
+ */

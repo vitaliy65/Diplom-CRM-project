@@ -9,6 +9,16 @@ import {
   WrenchIcon,
 } from "lucide-react";
 
+export type ViewType =
+  | "dashboard"
+  | "tickets"
+  | "clients"
+  | "services"
+  | "storage"
+  | "master"
+  | "users"
+  | "settings";
+
 export const menuItems = [
   {
     id: "dashboard",
