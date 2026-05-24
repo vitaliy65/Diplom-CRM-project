@@ -339,5 +339,5 @@
 }
 
 .view-box {
-  @apply md:p-8 p-2 h-full;
+  @apply md:p-8 p-2 h-full justify-center;
 }

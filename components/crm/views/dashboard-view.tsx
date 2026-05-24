@@ -151,7 +151,7 @@ export function DashboardView() {
       description="Огляд активності сервісного центру"
     >
       {/* Bento Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-12 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-12 gap-3 md:gap-4 w-full">
         {/* ── Stat Cards ────────────────────────────────────────────── */}
 
         <div className="col-span-1 md:col-span-3">

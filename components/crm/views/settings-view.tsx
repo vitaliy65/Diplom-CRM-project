@@ -31,7 +31,7 @@ export default function SettingsView() {
       {/* Settings Form */}
       <motion.form
         variants={itemVariants}
-        className="bento-card hover:scale-none! p-6 space-y-6"
+        className="bento-card hover:scale-none! p-6 space-y-6 md:w-md w-full"
         onSubmit={handleSave}
       >
         <div className="space-y-4">
