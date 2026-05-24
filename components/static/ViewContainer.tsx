@@ -1,6 +1,6 @@
 import { containerVariants } from "@/static/Animations";
 import React, { ReactNode } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ViewContainerI {
   title: string;
@@ -10,24 +10,25 @@ interface ViewContainerI {
 
 export default function ViewContainer(props: ViewContainerI) {
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="general-view-settings"
-    >
-      <div className="view-container">
-        <div className="view-box">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            {props.title}
-          </h1>
-          <p className="mt-1 text-sm md:text-base text-muted-foreground">
-            {props.description}
-          </p>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={props.title}
+        variants={containerVariants}
+        className="general-view-settings"
+      >
+        <div className="view-container">
+          <div className="view-box">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              {props.title}
+            </h1>
+            <p className="mt-1 text-sm md:text-base text-muted-foreground">
+              {props.description}
+            </p>
+          </div>
+          <span className="w-full border-b border-border"></span>
+          <div className="view-box">{props.children}</div>
         </div>
-        <span className="w-full border-b border-border"></span>
-        <div className="view-box">{props.children}</div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

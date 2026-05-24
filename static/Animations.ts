@@ -6,6 +6,7 @@ export const containerVariants = {
     y: [0, 0],
     transition: { staggerChildren: 0.1, duration: 0.4 },
   },
+  exit: { opacity: 0.1, scale: 0.95 },
 };
 
 export const variantItem = {

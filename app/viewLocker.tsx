@@ -25,15 +25,15 @@ export default function ViewLocker({
   const canAccess =
     user && matchedMenuItem.roles && matchedMenuItem.roles.includes(user.role);
 
-  if (!canAccess) {
-    // Optionally, redirect to dashboard or show error
-    // router.replace("/dashboard"); // Uncomment to auto-redirect
-    return (
-      <div className="flex items-center justify-center min-h-screen text-lg font-semibold text-red-500">
-        У вас немає доступу до цієї сторінки.
-      </div>
-    );
-  }
+  // if (!canAccess) {
+  //   // Optionally, redirect to dashboard or show error
+  //   // router.replace("/dashboard"); // Uncomment to auto-redirect
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen text-lg font-semibold text-red-500">
+  //       У вас немає доступу до цієї сторінки.
+  //     </div>
+  //   );
+  // }
 
   return <>{children}</>;
 }
