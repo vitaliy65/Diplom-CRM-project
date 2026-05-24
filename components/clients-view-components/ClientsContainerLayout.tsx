@@ -9,11 +9,14 @@ import {
   selectClientsRowsPerPage,
   setCurrentPage,
   setRowsPerPage,
+  setFilteredClients,
+  selectClients,
 } from "@/store/slices/clients-slice";
 import TopViewButtons from "../buttons/TopViewButtons";
 import ShowTablePage from "../static/ShowTablePage";
 import type { Client } from "@/lib/types";
 import { CreateClientDialog } from "./CreateClientDialog";
+import { clientConfig } from "@/filters";
 
 // порядок отображения полей таблицы клиентов
 const CLIENT_COLUMNS: Array<keyof Client> = [
@@ -26,14 +29,15 @@ const CLIENT_COLUMNS: Array<keyof Client> = [
 export default function ClientsContainerLayout() {
   const dispatch = useAppDispatch();
 
-  const clients = useAppSelector(selectPaginatedClients);
+  const paginatedClients = useAppSelector(selectPaginatedClients);
+  const clients = useAppSelector(selectClients);
   const totalRows = useAppSelector(selectClientsTotalRows);
   const currentPage = useAppSelector(selectClientsCurrentPage);
   const rowsPerPage = useAppSelector(selectClientsRowsPerPage);
 
   const headers = CLIENT_COLUMNS as string[];
 
-  const data = clients.map((client) =>
+  const data = paginatedClients.map((client) =>
     headers.map((key) => ({
       text:
         client[key as keyof Client] == null
@@ -44,7 +48,12 @@ export default function ClientsContainerLayout() {
 
   return (
     <div className="flex h-full flex-col flex-1 gap-4">
-      <TopViewButtons ChildrenCreateDialog={<CreateClientDialog />} />
+      <TopViewButtons
+        ChildrenCreateDialog={<CreateClientDialog />}
+        data={clients}
+        filterConfig={clientConfig}
+        onSort={(result) => dispatch(setFilteredClients(result))}
+      />
       <TableViewBox headers={headers} data={data} />
       <ShowTablePage
         totalRows={totalRows}

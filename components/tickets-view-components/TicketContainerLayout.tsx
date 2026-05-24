@@ -12,6 +12,8 @@ import {
   selectTicketsRowsPerPage,
   setCurrentPage,
   setRowsPerPage,
+  setFilteredItems,
+  selectTickets,
 } from "@/store/slices/tickets-slice";
 import { selectMasters } from "@/store/slices/users-slice";
 import { selectServices } from "@/store/slices/services-slice";
@@ -19,6 +21,8 @@ import type { ViewType } from "@/static/MenuItems";
 import { toFullDateTime } from "@/lib/time";
 import { Ticket } from "@/lib/types";
 import ShowTablePage from "../static/ShowTablePage";
+import { ticketConfig } from "@/filters";
+import { Skeleton } from "../ui/skeleton";
 
 // Статичный порядок отображения полей (ключей тикета) в таблице
 const TICKET_COLUMNS: Array<keyof Ticket> = [
@@ -45,7 +49,8 @@ function filterTableColumns(columns: string[]): string[] {
 
 export default function TicketContainerLayout() {
   const dispatch = useAppDispatch();
-  const tickets = useAppSelector(selectPaginatedTickets);
+  const paginatedTickets = useAppSelector(selectPaginatedTickets);
+  const tickets = useAppSelector(selectTickets);
   const masters = useAppSelector(selectMasters);
   const clients = useAppSelector(selectClients);
   const services = useAppSelector(selectServices);
@@ -54,12 +59,10 @@ export default function TicketContainerLayout() {
   const currentPage = useAppSelector(selectTicketsCurrentPage);
   const rowsPerPage = useAppSelector(selectTicketsRowsPerPage);
 
-  // Используем фиксированный порядок ключей для колонок таблицы
-  const rawHeaders = filterTableColumns(TICKET_COLUMNS as string[]);
-  const headers = rawHeaders; // id/name поля уже удалены выше
+  const headers = filterTableColumns(TICKET_COLUMNS as string[]);
 
-  const data = tickets.map((ticket) => {
-    const row: TableRow[] = rawHeaders.map((key) => {
+  const data = paginatedTickets.map((ticket) => {
+    const row: TableRow[] = headers.map((key) => {
       const value = ticket[key as keyof Ticket];
 
       // clientId → clients
@@ -88,7 +91,7 @@ export default function TicketContainerLayout() {
               labelText:
                 typeof master?.name === "string" ? master.name : String(value),
               id: String(value),
-              viewType: "master" as ViewType,
+              viewType: "users" as ViewType,
             },
           ],
         };
@@ -163,6 +166,9 @@ export default function TicketContainerLayout() {
     <div className="flex h-full flex-col flex-1 gap-4">
       <TopViewButtons
         ChildrenCreateDialog={<CreateTicketDialog clients={clients} />}
+        data={tickets}
+        filterConfig={ticketConfig}
+        onSort={(result) => dispatch(setFilteredItems(result))}
       />
       <TableViewBox headers={headers} data={data} />
       <ShowTablePage

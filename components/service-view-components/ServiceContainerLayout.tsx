@@ -9,11 +9,14 @@ import {
   selectServicesRowsPerPage,
   setCurrentPage,
   setRowsPerPage,
+  selectServices,
+  setFilteredItems,
 } from "@/store/slices/services-slice";
 import TopViewButtons from "../buttons/TopViewButtons";
 import ShowTablePage from "../static/ShowTablePage";
 import type { Service } from "@/lib/types";
 import { CreateServiceDialog } from "./CreateServiceDialog";
+import { serviceConfig } from "@/filters";
 
 // порядок отображения полей таблицы сервисов
 const SERVICE_COLUMNS: Array<keyof Service> = [
@@ -26,14 +29,15 @@ const SERVICE_COLUMNS: Array<keyof Service> = [
 export default function ServiceContainerLayout() {
   const dispatch = useAppDispatch();
 
-  const services = useAppSelector(selectPaginatedServices);
+  const paginatedServices = useAppSelector(selectPaginatedServices);
+  const services = useAppSelector(selectServices);
   const totalRows = useAppSelector(selectServicesTotalRows);
   const currentPage = useAppSelector(selectServicesCurrentPage);
   const rowsPerPage = useAppSelector(selectServicesRowsPerPage);
 
   const headers = SERVICE_COLUMNS as string[];
 
-  const data = services.map((svc) =>
+  const data = paginatedServices.map((svc) =>
     headers.map((key) => ({
       text:
         svc[key as keyof Service] == null
@@ -44,7 +48,12 @@ export default function ServiceContainerLayout() {
 
   return (
     <div className="flex h-full flex-col flex-1 gap-4">
-      <TopViewButtons ChildrenCreateDialog={<CreateServiceDialog />} />
+      <TopViewButtons
+        ChildrenCreateDialog={<CreateServiceDialog />}
+        data={services}
+        filterConfig={serviceConfig}
+        onSort={(result) => dispatch(setFilteredItems(result))}
+      />
       <TableViewBox headers={headers} data={data} />
       <ShowTablePage
         totalRows={totalRows}

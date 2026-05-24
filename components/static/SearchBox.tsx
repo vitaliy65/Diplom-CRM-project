@@ -6,7 +6,7 @@ export default function SearchBox() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="relative">
+    <div className="flex relative max-md:w-full">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <Input
         placeholder="пошук ..."

@@ -13,6 +13,7 @@ import type { Ticket, TicketStatus, UserRole } from "@/lib/types";
 // New pagination state
 type TicketsState = {
   items: Ticket[];
+  filteredItems: Ticket[];
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -26,11 +27,12 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 
 const initialState: TicketsState = {
   items: [],
+  filteredItems: [],
   loading: true,
   saving: false,
   error: null,
-  currentPage: 1, // Добавлено
-  rowsPerPage: DEFAULT_ROWS_PER_PAGE, // Добавлено, можно менять и в UI
+  currentPage: 1,
+  rowsPerPage: DEFAULT_ROWS_PER_PAGE,
 };
 
 let unsubscribeTickets: (() => void) | null = null;
@@ -166,13 +168,21 @@ const ticketsSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
-    // Добавляем reducers для пагинации
+    // Добавляем reducers для пагинации и фильтрации
     setCurrentPage: (state, action: { payload: number }) => {
       state.currentPage = action.payload;
     },
     setRowsPerPage: (state, action: { payload: number }) => {
       state.rowsPerPage = action.payload;
-      state.currentPage = 1; // сброс на первую страницу при смене rowsPerPage
+      state.currentPage = 1;
+    },
+    setFilteredItems: (state, action: { payload: Ticket[] }) => {
+      state.filteredItems = action.payload;
+      state.currentPage = 1; // Сброс страницы при установке нового фильтра
+    },
+    clearFilteredItems: (state) => {
+      state.filteredItems = [];
+      state.currentPage = 1; // Сброс страницы при сбросе фильтра
     },
   },
   extraReducers: (builder) => {
@@ -205,27 +215,39 @@ const ticketsSlice = createSlice({
   },
 });
 
-// Селекторы для пагинации
+// Селекторы для получения данных
 export const selectTickets = (state: RootState) => state.tickets.items;
+export const selectFilteredTickets = (state: RootState) =>
+  state.tickets.filteredItems;
 export const selectTicketsLoading = (state: RootState) => state.tickets.loading;
 export const selectTicketsSaving = (state: RootState) => state.tickets.saving;
 export const selectTicketsError = (state: RootState) => state.tickets.error;
 
-// Новый селектор для пагинированных данных (на текущей странице)
+// Селектор для пагинированных данных с учетом фильтрации
 export const selectPaginatedTickets = (state: RootState) => {
-  const { items, currentPage, rowsPerPage } = state.tickets;
+  const { items, filteredItems, currentPage, rowsPerPage } = state.tickets;
+  const data = filteredItems.length > 0 ? filteredItems : items;
   const startIdx = (currentPage - 1) * rowsPerPage;
   const endIdx = startIdx + rowsPerPage;
-  return items.slice(startIdx, endIdx);
+  return data.slice(startIdx, endIdx);
 };
-export const selectTicketsTotalRows = (state: RootState) =>
-  state.tickets.items.length;
+
+export const selectTicketsTotalRows = (state: RootState) => {
+  const { items, filteredItems } = state.tickets;
+  return filteredItems.length > 0 ? filteredItems.length : items.length;
+};
 export const selectTicketsCurrentPage = (state: RootState) =>
   state.tickets.currentPage;
 export const selectTicketsRowsPerPage = (state: RootState) =>
   state.tickets.rowsPerPage;
 
-// Экспортируем actions для управления пагинацией
-export const { setCurrentPage, setRowsPerPage } = ticketsSlice.actions;
+// Экспортируем actions для управления пагинацией и фильтрацией
+export const {
+  setCurrentPage,
+  setRowsPerPage,
+  setTickets,
+  setFilteredItems,
+  clearFilteredItems,
+} = ticketsSlice.actions;
 
 export default ticketsSlice.reducer;

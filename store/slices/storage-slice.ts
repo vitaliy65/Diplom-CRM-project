@@ -12,18 +12,27 @@ import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
 import type { SpareParts, UserRole } from "@/lib/types";
 
+// --- Пагинация и фильтрация ---
 type StorageState = {
   items: SpareParts[];
+  filteredItems: SpareParts[];
   loading: boolean;
   saving: boolean;
   error: string | null;
+  currentPage: number;
+  rowsPerPage: number;
 };
+
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 const initialState: StorageState = {
   items: [],
+  filteredItems: [],
   loading: true,
   saving: false,
   error: null,
+  currentPage: 1,
+  rowsPerPage: DEFAULT_ROWS_PER_PAGE,
 };
 
 let unsubscribeStorage: (() => void) | null = null;
@@ -122,6 +131,21 @@ const storageSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    setStorageCurrentPage: (state, action: { payload: number }) => {
+      state.currentPage = action.payload;
+    },
+    setStorageRowsPerPage: (state, action: { payload: number }) => {
+      state.rowsPerPage = action.payload;
+      state.currentPage = 1; // сброс на первую страницу при смене rowsPerPage
+    },
+    setFilteredStorage: (state, action: { payload: SpareParts[] }) => {
+      state.filteredItems = action.payload;
+      state.currentPage = 1; // Сброс страницы при установке нового фильтра
+    },
+    clearFilteredStorage: (state) => {
+      state.filteredItems = [];
+      state.currentPage = 1; // Сброс страницы при сбросе фильтра
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -156,16 +180,51 @@ const storageSlice = createSlice({
   },
 });
 
-// Selector to get all storage items
+// Селекторы для пагинации, фильтрации и получения данных
 export const selectStorage = (state: RootState) => state.storage.items;
+export const selectFilteredStorage = (state: RootState) =>
+  state.storage.filteredItems;
 export const selectStorageLoading = (state: RootState) => state.storage.loading;
 export const selectStorageSaving = (state: RootState) => state.storage.saving;
 export const selectStorageError = (state: RootState) => state.storage.error;
+
+// Новый селектор для пагинированных данных с учетом фильтрации (аналог tickets-slice)
+export const selectPaginatedStorage = (state: RootState) => {
+  const { items, filteredItems, currentPage, rowsPerPage } = state.storage;
+  const data = filteredItems.length > 0 ? filteredItems : items;
+  const startIdx = (currentPage - 1) * rowsPerPage;
+  const endIdx = startIdx + rowsPerPage;
+  return data.slice(startIdx, endIdx);
+};
+
+export const selectStorageTotalRows = (state: RootState) => {
+  const { items, filteredItems } = state.storage;
+  return filteredItems.length > 0 ? filteredItems.length : items.length;
+};
+
+export const selectStorageCurrentPage = (state: RootState) =>
+  state.storage.currentPage;
+export const selectStorageRowsPerPage = (state: RootState) =>
+  state.storage.rowsPerPage;
 
 // New selector: getPartByID
 export const getPartByID = (
   state: RootState,
   id: string,
-): SpareParts | undefined => state.storage.items.find((item) => item.id === id);
+): SpareParts | undefined => {
+  const data =
+    state.storage.filteredItems.length > 0
+      ? state.storage.filteredItems
+      : state.storage.items;
+  return data.find((item) => item.id === id);
+};
+
+// Экспортируем actions для пагинации и фильтрации
+export const {
+  setStorageCurrentPage,
+  setStorageRowsPerPage,
+  setFilteredStorage,
+  clearFilteredStorage,
+} = storageSlice.actions;
 
 export default storageSlice.reducer;

@@ -74,7 +74,7 @@ function RenderObjLabel({
       {obj.map(({ labelText, id, viewType }, idx) => (
         <span
           key={id}
-          className="bento-card text-xs px-2 py-1 cursor-pointer"
+          className="table-link text-xs px-2 py-1 cursor-pointer"
           onClick={() => {
             switch (viewType) {
               case "clients":
@@ -170,7 +170,7 @@ function TableRowComponent({
 
 export default function TableViewBox({ headers, data }: TableViewBoxI) {
   return (
-    <div className="overflow-auto border rounded-lg shadow bg-card">
+    <div className="overflow-auto bento-card hover:scale-none!">
       <table className="min-w-full divide-y divide-border">
         <TableHeader headers={headers} />
         <tbody>

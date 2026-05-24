@@ -12,14 +12,14 @@ import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { Client, UserRole } from "@/lib/types";
 import type { RootState } from "@/store";
 
-// --- добавляем только функционал страничек (pagination)
+// --- добавляем функционал страничек (pagination) и фильтрации (filtered) ---
 
 type ClientsState = {
   items: Client[];
+  filteredItems: Client[];
   loading: boolean;
   saving: boolean;
   error: string | null;
-
   currentPage: number;
   rowsPerPage: number;
 };
@@ -28,6 +28,7 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 
 const initialState: ClientsState = {
   items: [],
+  filteredItems: [],
   loading: true,
   saving: false,
   error: null,
@@ -135,6 +136,15 @@ const clientsSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    // New reducers for filter functionality
+    setFilteredClients: (state, action: { payload: Client[] }) => {
+      state.filteredItems = action.payload;
+      state.currentPage = 1; // reset to first page when filter applies
+    },
+    clearFilteredClients: (state) => {
+      state.filteredItems = [];
+      state.currentPage = 1;
+    },
     setCurrentPage: (state, action: { payload: number }) => {
       state.currentPage = action.payload;
     },
@@ -176,28 +186,39 @@ const clientsSlice = createSlice({
   },
 });
 
-// Селекторы для пагинации клиентов:
+// Селекторы для пагинации и фильтрации клиентов:
 
 export const selectClients = (state: RootState) => state.clients.items;
+export const selectFilteredClients = (state: RootState) =>
+  state.clients.filteredItems;
 export const selectClientsLoading = (state: RootState) => state.clients.loading;
 export const selectClientsSaving = (state: RootState) => state.clients.saving;
 export const selectClientsError = (state: RootState) => state.clients.error;
 
-// Пагинированный список клиентов для текущей страницы
+// Пагинированный список клиентов для текущей страницы с учетом фильтрации
 export const selectPaginatedClients = (state: RootState) => {
-  const { items, currentPage, rowsPerPage } = state.clients;
+  const { items, filteredItems, currentPage, rowsPerPage } = state.clients;
+  const data = filteredItems.length > 0 ? filteredItems : items;
   const startIdx = (currentPage - 1) * rowsPerPage;
   const endIdx = startIdx + rowsPerPage;
-  return items.slice(startIdx, endIdx);
+  return data.slice(startIdx, endIdx);
 };
-export const selectClientsTotalRows = (state: RootState) =>
-  state.clients.items.length;
+export const selectClientsTotalRows = (state: RootState) => {
+  const { items, filteredItems } = state.clients;
+  return filteredItems.length > 0 ? filteredItems.length : items.length;
+};
 export const selectClientsCurrentPage = (state: RootState) =>
   state.clients.currentPage;
 export const selectClientsRowsPerPage = (state: RootState) =>
   state.clients.rowsPerPage;
 
-// Экспортируем actions пагинации
-export const { setCurrentPage, setRowsPerPage } = clientsSlice.actions;
+// Экспортируем actions пагинации и фильтрации
+export const {
+  setCurrentPage,
+  setRowsPerPage,
+  setClients,
+  setFilteredClients,
+  clearFilteredClients,
+} = clientsSlice.actions;
 
 export default clientsSlice.reducer;

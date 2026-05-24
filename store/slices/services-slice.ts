@@ -12,9 +12,10 @@ import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
 import type { Service, UserRole } from "@/lib/types";
 
-// Добавляем поля пагинации в стейт
+// Добавляем поля пагинации и фильтрации в стейт
 type ServicesState = {
   items: Service[];
+  filteredItems: Service[];
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -26,6 +27,7 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 
 const initialState: ServicesState = {
   items: [],
+  filteredItems: [],
   loading: true,
   saving: false,
   error: null,
@@ -128,6 +130,14 @@ const servicesSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    setFilteredItems: (state, action: { payload: Service[] }) => {
+      state.filteredItems = action.payload;
+      state.currentPage = 1; // Сброс страницы при установке нового фильтра
+    },
+    clearFilteredItems: (state) => {
+      state.filteredItems = [];
+      state.currentPage = 1; // Сброс страницы при сбросе фильтра
+    },
     setCurrentPage: (state, action: { payload: number }) => {
       state.currentPage = action.payload;
     },
@@ -169,27 +179,38 @@ const servicesSlice = createSlice({
   },
 });
 
-// Селекторы для пагинации
+// Селекторы для пагинации и фильтрации
 export const selectServices = (state: RootState) => state.services.items;
+export const selectFilteredServices = (state: RootState) =>
+  state.services.filteredItems;
 export const selectServicesLoading = (state: RootState) =>
   state.services.loading;
 export const selectServicesSaving = (state: RootState) => state.services.saving;
 export const selectServicesError = (state: RootState) => state.services.error;
 
 export const selectPaginatedServices = (state: RootState) => {
-  const { items, currentPage, rowsPerPage } = state.services;
+  const { items, filteredItems, currentPage, rowsPerPage } = state.services;
+  const data = filteredItems.length > 0 ? filteredItems : items;
   const startIdx = (currentPage - 1) * rowsPerPage;
   const endIdx = startIdx + rowsPerPage;
-  return items.slice(startIdx, endIdx);
+  return data.slice(startIdx, endIdx);
 };
-export const selectServicesTotalRows = (state: RootState) =>
-  state.services.items.length;
+export const selectServicesTotalRows = (state: RootState) => {
+  const { items, filteredItems } = state.services;
+  return filteredItems.length > 0 ? filteredItems.length : items.length;
+};
 export const selectServicesCurrentPage = (state: RootState) =>
   state.services.currentPage;
 export const selectServicesRowsPerPage = (state: RootState) =>
   state.services.rowsPerPage;
 
-// Экспортируем actions для управления пагинацией
-export const { setCurrentPage, setRowsPerPage } = servicesSlice.actions;
+// Экспортируем actions для управления пагинацией и фильтрацией
+export const {
+  setCurrentPage,
+  setRowsPerPage,
+  setServices,
+  setFilteredItems,
+  clearFilteredItems,
+} = servicesSlice.actions;
 
 export default servicesSlice.reducer;
