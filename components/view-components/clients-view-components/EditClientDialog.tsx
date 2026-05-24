@@ -2,51 +2,44 @@
 
 import { useState, useEffect } from "react";
 import { useAppDispatch } from "@/store/hooks";
-import { updateSparePart } from "@/store/slices/storage-slice";
+import { updateClient } from "@/store/slices/clients-slice";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-import type { SpareParts } from "@/lib/types";
+import type { Client } from "@/lib/types";
 import { toast } from "sonner";
 import DialogInput from "@/components/DialogInput";
 
-type EditStorageDialogProps = {
-  editingStorage: SpareParts | null;
-  setEditingStorage: (storage: SpareParts | null) => void;
+type EditClientDialogProps = {
+  editingClient: Client | null;
+  setEditingClient: (client: Client | null) => void;
   saving: boolean;
 };
 
-const emptySparePartsFields: Omit<SpareParts, "id"> = {
+const emptyClientFields: Omit<Client, "id" | "ticketCount"> = {
   name: "",
-  description: "",
-  count: 0,
-  priceForOne: 0,
+  phone: "",
+  email: "",
 };
 
-export function EditStorageDialog({
-  editingStorage,
-  setEditingStorage,
+export function EditClientDialog({
+  editingClient,
+  setEditingClient,
   saving,
-}: EditStorageDialogProps) {
+}: EditClientDialogProps) {
   const dispatch = useAppDispatch();
-  const [formData, setFormData] = useState<Omit<SpareParts, "id">>(
-    emptySparePartsFields,
-  );
+  const [formData, setFormData] =
+    useState<Omit<Client, "id" | "ticketCount">>(emptyClientFields);
 
-  // Sync form with editingStorage
+  // Sync form with editingClient
   useEffect(() => {
-    if (editingStorage) {
-      const { name, description, count, priceForOne } = editingStorage;
-      setFormData({
-        name: name ?? "",
-        description: description ?? "",
-        count: count ?? 0,
-        priceForOne: priceForOne ?? 0,
-      });
+    if (editingClient) {
+      const { name, phone, email } = editingClient;
+      setFormData({ name: name ?? "", phone: phone ?? "", email: email ?? "" });
     } else {
-      setFormData(emptySparePartsFields);
+      setFormData(emptyClientFields);
     }
-  }, [editingStorage]);
+  }, [editingClient]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -54,35 +47,31 @@ export function EditStorageDialog({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "count" || name === "priceForOne" ? Number(value) : value,
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingStorage) return;
+    if (!editingClient) return;
     const result = await dispatch(
-      updateSparePart({
-        id: editingStorage.id,
-        data: formData,
-      }),
+      updateClient({ id: editingClient.id, data: formData }),
     );
-    if (updateSparePart.fulfilled.match(result)) {
-      toast.success("Запчастину оновлено");
-      setEditingStorage(null);
+    if (updateClient.fulfilled.match(result)) {
+      toast.success("Клієнта оновлено");
+      setEditingClient(null);
     } else {
       toast.error(
-        (result.payload as string) || "Помилка під час оновлення запчастини",
+        (result.payload as string) || "Помилка під час оновлення клієнта",
       );
     }
   };
 
-  const handleClose = () => setEditingStorage(null);
+  const handleClose = () => setEditingClient(null);
 
   return (
     <AnimatePresence>
-      {editingStorage && (
+      {editingClient && (
         <>
           {/* Backdrop */}
           <motion.div
@@ -97,7 +86,7 @@ export function EditStorageDialog({
           {/* Dialog */}
           <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
             <motion.div
-              key="storage-dialog"
+              key="client-dialog"
               initial={{ opacity: 0, scale: 0.96, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -107,7 +96,7 @@ export function EditStorageDialog({
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
                 <h3 className="text-base font-semibold text-foreground">
-                  Редагування запчастини
+                  Редагування клієнта
                 </h3>
                 <button
                   type="button"
@@ -120,32 +109,26 @@ export function EditStorageDialog({
               {/* Form Body */}
               <div className="overflow-y-auto flex-1 px-6 py-4">
                 <form
-                  id="edit-storage-form"
+                  id="edit-client-form"
                   onSubmit={handleSubmit}
                   className="space-y-4"
                 >
                   <DialogInput
                     name="name"
-                    label="Назва"
+                    label="Ім’я"
                     value={formData.name}
                     onChange={handleChange}
                   />
                   <DialogInput
-                    name="description"
-                    label="Опис"
-                    value={formData.description}
+                    name="phone"
+                    label="Телефон"
+                    value={formData.phone}
                     onChange={handleChange}
                   />
                   <DialogInput
-                    name="count"
-                    label="Кількість"
-                    value={formData.count}
-                    onChange={handleChange}
-                  />
-                  <DialogInput
-                    name="priceForOne"
-                    label="Ціна за одиницю"
-                    value={formData.priceForOne}
+                    name="email"
+                    label="Email"
+                    value={formData.email}
                     onChange={handleChange}
                   />
                 </form>
@@ -157,7 +140,7 @@ export function EditStorageDialog({
                 </Button>
                 <Button
                   type="submit"
-                  form="edit-storage-form"
+                  form="edit-client-form"
                   className="bg-primary hover:bg-primary/90"
                   disabled={saving}
                 >

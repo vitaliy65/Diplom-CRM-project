@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import TopViewButtons from "@/components/buttons/TopViewButtons";
 import {
@@ -15,11 +16,12 @@ import {
 import type { SpareParts } from "@/lib/types";
 import { CreateStorageDialog } from "./CreateStorageDialog";
 import ShowTablePage from "@/components/static/ShowTablePage";
-import { sparePartsConfig } from "@/filters/configs/spare-parts"; // Assume you have a storageConfig or add your own filter config.
+import { sparePartsConfig } from "@/filters/configs/spare-parts";
 import { Skeleton } from "@/components/ui/skeleton";
-import TableViewBox from "@/components/static/TableViewBox";
+import TableViewBox, { TableRow } from "@/components/static/TableViewBox";
+import { EditStorageDialog } from "./EditStorageDialog";
 
-// Статичный порядок отображения полей (ключей склада) в таблице
+// Определяем порядок отображения столбцов склада
 const STORAGE_COLUMNS: Array<keyof SpareParts> = [
   "name",
   "description",
@@ -31,6 +33,12 @@ function filterTableColumns(columns: string[]): string[] {
   return columns;
 }
 
+// Для ассоциации строки с id запчастини, как в сервисах
+type TableRowWithStorageId = {
+  row: TableRow[];
+  storageId: string;
+};
+
 export default function StorageContainerLayout() {
   const dispatch = useAppDispatch();
   const paginatedStorage = useAppSelector(selectPaginatedStorage);
@@ -41,7 +49,8 @@ export default function StorageContainerLayout() {
 
   const rawHeaders = filterTableColumns(STORAGE_COLUMNS as string[]);
 
-  const data =
+  // Ассоциируем данные с id для поддержки редактирования
+  const data: TableRowWithStorageId[] =
     paginatedStorage?.map((item) => {
       const row: TableRow[] = rawHeaders.map((key) => ({
         text:
@@ -49,8 +58,19 @@ export default function StorageContainerLayout() {
             ? ""
             : String(item[key as keyof SpareParts]),
       }));
-      return row;
+      return { row, storageId: item.id };
     }) ?? [];
+
+  // State for editing storage dialog
+  const [editingStorage, setEditingStorage] = useState<SpareParts | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Row click sets the editingStorage for dialog
+  const handleRowClick = (storageId?: string) => {
+    if (!storageId) return;
+    const item = storage.find((s) => s.id === storageId);
+    if (item) setEditingStorage(item);
+  };
 
   // If loading, show skeleton
   if (!storage) {
@@ -70,7 +90,11 @@ export default function StorageContainerLayout() {
         filterConfig={sparePartsConfig}
         onSort={(result) => dispatch(setFilteredStorage(result))}
       />
-      <TableViewBox headers={rawHeaders} data={data} />
+      <TableViewBox
+        headers={rawHeaders}
+        data={data.map((d) => d.row)}
+        onRowClick={(idx: number) => handleRowClick(data[idx]?.storageId)}
+      />
       <ShowTablePage
         totalRows={totalRows}
         currentPage={currentPage}
@@ -79,6 +103,11 @@ export default function StorageContainerLayout() {
         onChangeRowsPerPage={(rows: number) =>
           dispatch(setStorageRowsPerPage(rows))
         }
+      />
+      <EditStorageDialog
+        editingStorage={editingStorage}
+        setEditingStorage={setEditingStorage}
+        saving={saving}
       />
     </div>
   );

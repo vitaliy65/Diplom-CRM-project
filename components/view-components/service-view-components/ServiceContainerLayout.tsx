@@ -17,6 +17,8 @@ import ShowTablePage from "@/components/static/ShowTablePage";
 import type { Service } from "@/lib/types";
 import { CreateServiceDialog } from "./CreateServiceDialog";
 import { serviceConfig } from "@/filters";
+import { EditServiceDialog } from "./EditServiceDialog";
+import { useState } from "react";
 
 // порядок отображения полей таблицы сервисов
 const SERVICE_COLUMNS: Array<keyof Service> = [
@@ -25,6 +27,12 @@ const SERVICE_COLUMNS: Array<keyof Service> = [
   "final_price",
   "discount",
 ];
+
+// Тип для ассоциации строки с serviceId
+type TableRowWithServiceId = {
+  row: { text: string }[];
+  serviceId: string;
+};
 
 export default function ServiceContainerLayout() {
   const dispatch = useAppDispatch();
@@ -37,14 +45,26 @@ export default function ServiceContainerLayout() {
 
   const headers = SERVICE_COLUMNS as string[];
 
-  const data = paginatedServices.map((svc) =>
-    headers.map((key) => ({
+  // Associate each row with serviceId for edit support
+  const data: TableRowWithServiceId[] = paginatedServices.map((svc) => {
+    const row = headers.map((key) => ({
       text:
         svc[key as keyof Service] == null
           ? ""
           : String(svc[key as keyof Service]),
-    })),
-  );
+    }));
+    return { row, serviceId: svc.id };
+  });
+
+  // State for editing service dialog
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const handleRowClick = (serviceId?: string) => {
+    if (!serviceId) return;
+    const service = services.find((s) => s.id === serviceId);
+    if (service) setEditingService(service);
+  };
 
   return (
     <div className="flex h-full flex-col flex-1 gap-4">
@@ -54,13 +74,22 @@ export default function ServiceContainerLayout() {
         filterConfig={serviceConfig}
         onSort={(result) => dispatch(setFilteredItems(result))}
       />
-      <TableViewBox headers={headers} data={data} />
+      <TableViewBox
+        headers={headers}
+        data={data.map((d) => d.row)}
+        onRowClick={(idx: number) => handleRowClick(data[idx]?.serviceId)}
+      />
       <ShowTablePage
         totalRows={totalRows}
         currentPage={currentPage}
         rowsPerPage={rowsPerPage}
         onChangePage={(page) => dispatch(setCurrentPage(page))}
         onChangeRowsPerPage={(n) => dispatch(setRowsPerPage(n))}
+      />
+      <EditServiceDialog
+        editingService={editingService}
+        setEditingService={setEditingService}
+        saving={saving}
       />
     </div>
   );
