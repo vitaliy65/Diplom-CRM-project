@@ -1,3 +1,4 @@
+"use client";
 import { containerVariants } from "@/static/Animations";
 import React, { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
