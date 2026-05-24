@@ -1,6 +1,6 @@
 "use client";
 
-import TableViewBox from "../static/TableViewBox";
+import TableViewBox from "@/components/static/TableViewBox";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import {
   selectPaginatedServices,
@@ -12,8 +12,8 @@ import {
   selectServices,
   setFilteredItems,
 } from "@/store/slices/services-slice";
-import TopViewButtons from "../buttons/TopViewButtons";
-import ShowTablePage from "../static/ShowTablePage";
+import TopViewButtons from "@/components/buttons/TopViewButtons";
+import ShowTablePage from "@/components/static/ShowTablePage";
 import type { Service } from "@/lib/types";
 import { CreateServiceDialog } from "./CreateServiceDialog";
 import { serviceConfig } from "@/filters";

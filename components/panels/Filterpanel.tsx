@@ -19,8 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FilterIcon, X } from "lucide-react";
-import { useIsMobile } from "@/components/ui/use-mobile";
 import { EntityFilterSortConfig, FilterFieldConfig } from "@/filters/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 

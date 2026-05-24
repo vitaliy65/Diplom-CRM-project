@@ -7,12 +7,12 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowUp, ArrowUpDown, SortAscIcon } from "lucide-react";
-import { useIsMobile } from "@/components/ui/use-mobile";
 import {
   EntityFilterSortConfig,
   ActiveSort,
   SortDirection,
 } from "@/filters/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SortPanelProps<T> {
   config: EntityFilterSortConfig<T>;

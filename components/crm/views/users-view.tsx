@@ -1,5 +1,5 @@
 "use client";
-import UsersContainerLayout from "@/components/users-view-components/UsersContainerLayout";
+import UsersContainerLayout from "@/components/view-components/users-view-components/UsersContainerLayout";
 import ViewContainer from "@/components/static/ViewContainer";
 
 export function UsersView() {

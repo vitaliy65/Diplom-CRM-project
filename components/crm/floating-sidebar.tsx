@@ -3,10 +3,10 @@
 import { useState, useEffect, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { SidebarNavButton } from "../navigation/sidebar-components/SidebarNavButton";
-import { LogoutButton } from "../navigation/sidebar-components/LogoutButton";
-import { MobileBottomNavItem } from "../navigation/sidebar-components/MobileBottomNavItem";
-import { MobileOverlayNavItem } from "../navigation/sidebar-components/MobileOverlayNavItem";
+import { SidebarNavButton } from "@/components/navigation/sidebar-components/SidebarNavButton";
+import { LogoutButton } from "@/components/navigation/sidebar-components/LogoutButton";
+import { MobileBottomNavItem } from "@/components/navigation/sidebar-components/MobileBottomNavItem";
+import { MobileOverlayNavItem } from "@/components/navigation/sidebar-components/MobileOverlayNavItem";
 import { menuItems } from "@/static/MenuItems";
 import { useAppRouter } from "@/hooks/use-app-router";
 

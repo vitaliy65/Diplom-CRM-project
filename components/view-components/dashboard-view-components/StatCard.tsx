@@ -1,7 +1,7 @@
 import React from "react";
 import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
-import { itemVariants } from "../crm/views/dashboard-view";
+import { variantItem } from "@/static/Animations";
 
 interface StatCardProps {
   title: string;
@@ -21,7 +21,7 @@ export function StatCard({
   console.log("[StatCard] I'm rendered");
   return (
     <motion.div
-      variants={itemVariants}
+      variants={variantItem}
       className="bento-card card-lift p-4 md:p-6 min-h-[142px]"
     >
       <div className="flex items-start justify-between">

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useAppSelector } from "@/store/hooks";
 import ViewContainer from "@/components/static/ViewContainer";
-import TicketContainerLayout from "@/components/tickets-view-components/TicketContainerLayout";
+import TicketContainerLayout from "@/components/view-components/tickets-view-components/TicketContainerLayout";
 
 export function TicketsView() {
   const selectedTicketId = useAppSelector((s) => s.selectedTicket.id);

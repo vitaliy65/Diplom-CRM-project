@@ -5,7 +5,7 @@ import { Wrench, CheckCircle2, ChevronRight } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
 import { selectTickets } from "@/store/slices/tickets-slice";
 import { selectCurrentUser } from "@/store/slices/auth-slice";
-import { SwipeableTicketCard } from "../../master-view-components/SwipeableTicketCard";
+import { SwipeableTicketCard } from "@/components/view-components/master-view-components/SwipeableTicketCard";
 import { containerVariants, variantItem } from "@/static/Animations";
 
 export function MasterView() {

@@ -7,12 +7,12 @@ import {
   selectAuthInitialized,
   selectCurrentUser,
 } from "@/store/slices/auth-slice";
-import { Spinner } from "../ui/spinner";
+import { Spinner } from "@/components/ui/spinner";
 import { LoginScreen } from "./login-screen";
 import { RegisterScreen } from "./register-screen";
 import { AnimatePresence } from "framer-motion";
-import { CommandPalette } from "../navigation/CommandPalette";
-import { TopBar } from "../navigation/TopBar";
+import { CommandPalette } from "@/components/navigation/CommandPalette";
+import { TopBar } from "@/components/navigation/TopBar";
 import { selectActiveView, setActiveView } from "@/store/slices/view-slice";
 
 export default function MainAppLayout({ children }: { children: ReactNode }) {

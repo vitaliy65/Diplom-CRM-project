@@ -1,7 +1,7 @@
 "use client";
 
 import ViewContainer from "@/components/static/ViewContainer";
-import StorageContainerLayout from "@/components/storage-view-components/StorageContainerLayout";
+import StorageContainerLayout from "@/components/view-components/storage-view-components/StorageContainerLayout";
 
 export default function StorageView() {
   return (

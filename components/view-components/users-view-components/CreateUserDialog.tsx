@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Dialog, DialogFooter, DialogTrigger } from "../ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { type UserProfile as User } from "@/lib/types";
 import {
   Select,
@@ -8,9 +8,9 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-} from "../ui/select";
-import ModalDialogConateiner from "../ModalDialogConateiner";
-import DialogInput from "../DialogInput";
+} from "@/components/ui/select";
+import ModalDialogConateiner from "@/components/ModalDialogConateiner";
+import DialogInput from "@/components/DialogInput";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 

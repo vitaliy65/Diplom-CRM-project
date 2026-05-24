@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Dialog, DialogFooter, DialogTrigger } from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import ModalDialogConateiner from "../ModalDialogConateiner";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import ModalDialogConateiner from "@/components/ModalDialogConateiner";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useAppDispatch } from "@/store/hooks";

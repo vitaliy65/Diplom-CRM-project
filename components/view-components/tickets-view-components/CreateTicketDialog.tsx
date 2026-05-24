@@ -1,21 +1,21 @@
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Dialog, DialogFooter, DialogTrigger } from "../ui/dialog";
+import { Dialog, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "../ui/select";
-import { Textarea } from "../ui/textarea";
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import * as React from "react";
 import { SpareParts, UsedPartsTicket } from "@/lib/types";
-import MultipleSelector from "../ui/multi-select";
+import MultipleSelector from "@/components/ui/multi-select";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import ModalDialogConateiner from "../ModalDialogConateiner";
-import DialogInput from "../DialogInput";
-import { Checkbox } from "../ui/checkbox";
+import ModalDialogConateiner from "@/components/ModalDialogConateiner";
+import DialogInput from "@/components/DialogInput";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";

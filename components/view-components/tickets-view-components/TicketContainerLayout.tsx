@@ -1,10 +1,10 @@
 "use client";
 
-import TableViewBox, { TableRow } from "../static/TableViewBox";
+import TableViewBox, { TableRow } from "@/components/static/TableViewBox";
 import { CreateTicketDialog } from "./CreateTicketDialog";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectClients } from "@/store/slices/clients-slice";
-import TopViewButtons from "../buttons/TopViewButtons";
+import TopViewButtons from "@/components/buttons/TopViewButtons";
 import {
   selectPaginatedTickets,
   selectTicketsTotalRows,
@@ -20,9 +20,9 @@ import { selectServices } from "@/store/slices/services-slice";
 import type { ViewType } from "@/static/MenuItems";
 import { toFullDateTime } from "@/lib/time";
 import { Ticket } from "@/lib/types";
-import ShowTablePage from "../static/ShowTablePage";
+import ShowTablePage from "@/components/static/ShowTablePage";
 import { ticketConfig } from "@/filters";
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EditTicketDialog } from "./EditTicketDialog";
 import { useState } from "react";
 

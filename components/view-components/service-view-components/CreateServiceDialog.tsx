@@ -5,7 +5,7 @@ import type { Service } from "@/lib/types";
 import { Dialog, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import ModalDialogConateiner from "../ModalDialogConateiner";
+import ModalDialogConateiner from "@/components/ModalDialogConateiner";
 import { useAppDispatch } from "@/store/hooks";
 import { createService } from "@/store/slices/services-slice";
 import { toast } from "sonner";

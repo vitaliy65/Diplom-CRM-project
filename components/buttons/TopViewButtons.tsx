@@ -1,11 +1,11 @@
 import { ReactNode, useEffect } from "react";
 import ExportButton from "./ExportButton";
-import SearchBox from "../static/SearchBox";
-import DividerVertical from "../static/DividerVertical";
-import { useIsMobile } from "../ui/use-mobile";
+import SearchBox from "@/components/static/SearchBox";
+import DividerVertical from "@/components/static/DividerVertical";
 import { EntityFilterSortConfig, useFilterSort } from "@/filters";
-import { FilterPanel } from "../panels/Filterpanel";
-import { SortPanel } from "../panels/Sortpanel";
+import { FilterPanel } from "@/components/panels/Filterpanel";
+import { SortPanel } from "@/components/panels/Sortpanel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TopViewButtonsI<T> {
   ChildrenCreateDialog: ReactNode;

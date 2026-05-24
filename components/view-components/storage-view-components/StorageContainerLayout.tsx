@@ -1,8 +1,7 @@
 "use client";
 
-import TableViewBox, { TableRow } from "../static/TableViewBox";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import TopViewButtons from "../buttons/TopViewButtons";
+import TopViewButtons from "@/components/buttons/TopViewButtons";
 import {
   selectPaginatedStorage,
   selectStorage,
@@ -15,9 +14,10 @@ import {
 } from "@/store/slices/storage-slice";
 import type { SpareParts } from "@/lib/types";
 import { CreateStorageDialog } from "./CreateStorageDialog";
-import ShowTablePage from "../static/ShowTablePage";
+import ShowTablePage from "@/components/static/ShowTablePage";
 import { sparePartsConfig } from "@/filters/configs/spare-parts"; // Assume you have a storageConfig or add your own filter config.
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import TableViewBox from "@/components/static/TableViewBox";
 
 // Статичный порядок отображения полей (ключей склада) в таблице
 const STORAGE_COLUMNS: Array<keyof SpareParts> = [

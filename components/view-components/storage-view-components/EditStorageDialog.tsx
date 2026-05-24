@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useAppDispatch } from "@/store/hooks";
-import { Dialog, DialogContent, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { AnimatePresence } from "framer-motion";
-import DialogInput from "../DialogInput";
+import DialogInput from "@/components/DialogInput";
 import { updateSparePart } from "@/store/slices/storage-slice";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { SpareParts } from "@/lib/types";
 

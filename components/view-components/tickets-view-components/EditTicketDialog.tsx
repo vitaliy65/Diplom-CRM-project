@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { AnimatePresence, motion } from "framer-motion";
-import DialogInput from "../DialogInput";
+import DialogInput from "@/components/DialogInput";
 import { updateTicket } from "@/store/slices/tickets-slice";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { Ticket, UsedPartsTicket } from "@/lib/types";
 import { selectMasters } from "@/store/slices/users-slice";
