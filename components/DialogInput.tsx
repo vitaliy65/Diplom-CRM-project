@@ -23,7 +23,7 @@ export default function DialogInput(props: DialogInputI) {
         placeholder="Дисплей iPhone 12"
         value={props.value}
         onChange={props.onChange}
-        className="bg-secondary/50 border-border/50 focus:border-primary/50"
+        className="bg-secondary border-border focus:border-primary/50 inset-shadow-sm"
         required
       />
     </div>

@@ -31,40 +31,7 @@ export function EditServiceDialog({
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 Редагування сервісу
               </h3>
-              <CreateServiceDialog
-                initial={editingService}
-                saving={saving}
-                onSubmit={async (data) => {
-                  // Calculate discount based on base_price and final_price
-                  // discount = (base_price - final_price) / base_price * 100
-                  let discount = 0;
-                  if (data.base_price > 0) {
-                    discount = Math.round(
-                      ((data.base_price - data.final_price) / data.base_price) *
-                        100,
-                    );
-                  }
-                  const updatePayload = {
-                    id: editingService.id,
-                    data: {
-                      name: data.name,
-                      base_price: data.base_price,
-                      final_price: data.final_price,
-                      discount,
-                    },
-                  };
-                  const result = await dispatch(updateService(updatePayload));
-                  if (updateService.fulfilled.match(result)) {
-                    toast.success("Сервіс оновлено");
-                    setEditingService(null);
-                  } else {
-                    toast.error(
-                      (result.payload as string) ||
-                        "Помилка під час оновлення сервісу",
-                    );
-                  }
-                }}
-              />
+              <CreateServiceDialog initial={editingService} saving={saving} />
             </div>
           </DialogContent>
         )}

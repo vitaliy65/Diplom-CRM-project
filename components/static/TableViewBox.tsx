@@ -5,11 +5,13 @@ import { setSelectedPartId } from "@/store/slices/selected-parts-slice";
 import { setSelectedServiceId } from "@/store/slices/selected-service-slice";
 import { setActiveView } from "@/store/slices/view-slice";
 import { useRouter } from "next/navigation";
-import { statusLabels, TicketStatus } from "@/lib/types"; // for status rendering
+import { statusLabels, TicketStatus } from "@/lib/types";
+import { motion } from "framer-motion";
 
 interface TableViewBoxI {
   headers: string[];
   data: TableRow[][];
+  onRowClick: (rowIdx: number) => void;
 }
 
 export interface TableRow {
@@ -116,9 +118,13 @@ function isStatusField(header: string) {
 function TableRowComponent({
   row,
   headers,
+  rowIdx,
+  onRowClick,
 }: {
   row: TableRow[];
   headers: string[];
+  rowIdx: number;
+  onRowClick: (rowIdx: number) => void;
 }) {
   // Если row.length меньше headers.length — дополняем прочерками
   const completedRow: TableRow[] = [
@@ -129,7 +135,22 @@ function TableRowComponent({
   ].slice(0, headers.length);
 
   return (
-    <tr className="hover:bg-accent transition-colors">
+    <motion.tr
+      key={`row-${rowIdx}`}
+      initial={{ scale: 0.96, opacity: 0 }}
+      animate={{
+        scale: 1,
+        opacity: 1,
+        transition: { delay: 0.045 * rowIdx, duration: 0.1 },
+      }}
+      whileHover={{
+        scale: 1.01,
+        transition: { duration: 0.1 },
+      }}
+      className="hover:bg-primary/10 cursor-pointer transition-color"
+      onClick={() => onRowClick(rowIdx)}
+      viewport={{ once: true }}
+    >
       {completedRow.map((cell, idx) => {
         const hasValue =
           typeof cell.text === "string" && cell.text.trim() !== "";
@@ -164,11 +185,15 @@ function TableRowComponent({
           </td>
         );
       })}
-    </tr>
+    </motion.tr>
   );
 }
 
-export default function TableViewBox({ headers, data }: TableViewBoxI) {
+export default function TableViewBox({
+  headers,
+  data,
+  onRowClick,
+}: TableViewBoxI) {
   return (
     <div className="overflow-auto bento-card hover:scale-none!">
       <table className="min-w-full divide-y divide-border">
@@ -185,7 +210,13 @@ export default function TableViewBox({ headers, data }: TableViewBoxI) {
             </tr>
           ) : (
             data.map((row, idx) => (
-              <TableRowComponent key={idx} row={row} headers={headers} />
+              <TableRowComponent
+                key={idx}
+                row={row}
+                headers={headers}
+                rowIdx={idx}
+                onRowClick={onRowClick}
+              />
             ))
           )}
         </tbody>

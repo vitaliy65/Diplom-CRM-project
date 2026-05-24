@@ -23,6 +23,8 @@ import { Ticket } from "@/lib/types";
 import ShowTablePage from "../static/ShowTablePage";
 import { ticketConfig } from "@/filters";
 import { Skeleton } from "../ui/skeleton";
+import { EditTicketDialog } from "./EditTicketDialog";
+import { useState } from "react";
 
 // Статичный порядок отображения полей (ключей тикета) в таблице
 const TICKET_COLUMNS: Array<keyof Ticket> = [
@@ -47,6 +49,12 @@ function filterTableColumns(columns: string[]): string[] {
   );
 }
 
+// ---- Custom type to keep ticketId associated with each row ----
+type TableRowWithTicketId = {
+  row: TableRow[];
+  ticketId: string;
+};
+
 export default function TicketContainerLayout() {
   const dispatch = useAppDispatch();
   const paginatedTickets = useAppSelector(selectPaginatedTickets);
@@ -61,7 +69,8 @@ export default function TicketContainerLayout() {
 
   const headers = filterTableColumns(TICKET_COLUMNS as string[]);
 
-  const data = paginatedTickets.map((ticket) => {
+  // Сохраняем ticket id с каждым row
+  const data: TableRowWithTicketId[] = paginatedTickets.map((ticket) => {
     const row: TableRow[] = headers.map((key) => {
       const value = ticket[key as keyof Ticket];
 
@@ -159,8 +168,19 @@ export default function TicketContainerLayout() {
         text: value == null ? "" : String(value),
       };
     });
-    return row;
+    // Attach the ticket id to the row array
+    return { row, ticketId: ticket.id };
   });
+
+  // --- State for editing ticket dialog
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const handleRowClick = (ticketId?: string) => {
+    if (!ticketId) return;
+    const ticket = tickets.find((t) => t.id === ticketId);
+    if (ticket) setEditingTicket(ticket);
+  };
 
   return (
     <div className="flex h-full flex-col flex-1 gap-4">
@@ -170,13 +190,22 @@ export default function TicketContainerLayout() {
         filterConfig={ticketConfig}
         onSort={(result) => dispatch(setFilteredItems(result))}
       />
-      <TableViewBox headers={headers} data={data} />
+      <TableViewBox
+        headers={headers}
+        data={data.map((d) => d.row)}
+        onRowClick={(idx: number) => handleRowClick(data[idx]?.ticketId)}
+      />
       <ShowTablePage
         totalRows={totalRows}
         currentPage={currentPage}
         rowsPerPage={rowsPerPage}
         onChangePage={(page: number) => dispatch(setCurrentPage(page))}
         onChangeRowsPerPage={(rows: number) => dispatch(setRowsPerPage(rows))}
+      />
+      <EditTicketDialog
+        editingTicket={editingTicket}
+        setEditingTicket={setEditingTicket}
+        saving={saving}
       />
     </div>
   );

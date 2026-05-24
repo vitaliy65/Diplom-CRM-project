@@ -1,10 +1,10 @@
 export const containerVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
+  hidden: { opacity: 0.1, scale: 0.95 },
   visible: {
     opacity: 1,
     scale: 1,
-    y: [50, 0],
-    transition: { staggerChildren: 0.1 },
+    y: [0, 0],
+    transition: { staggerChildren: 0.1, duration: 0.4 },
   },
 };
 
