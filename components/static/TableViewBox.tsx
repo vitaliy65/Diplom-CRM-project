@@ -7,6 +7,7 @@ import { setActiveView } from "@/store/slices/view-slice";
 import { useRouter } from "next/navigation";
 import { statusLabels, TicketStatus } from "@/lib/types";
 import { motion } from "framer-motion";
+import { setSelectedMasterId } from "@/store/slices/selected-master-slice";
 
 interface TableViewBoxI {
   headers: string[];
@@ -77,13 +78,16 @@ function RenderObjLabel({
         <span
           key={id}
           className="table-link text-xs px-2 py-1 cursor-pointer"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             switch (viewType) {
               case "clients":
                 dispatch(setActiveView("clients"));
                 dispatch(setSelectedClientId(id));
                 break;
-              case "master":
+              case "users":
+                dispatch(setActiveView("users"));
+                dispatch(setSelectedMasterId(id));
                 break;
               case "services":
                 dispatch(setActiveView("services"));
