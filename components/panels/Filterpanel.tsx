@@ -231,7 +231,7 @@ export function FilterPanel<T>({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-80 p-0 shadow-xl"
+        className="w-80 p-0 shadow-2xl bg-card"
         align="center"
         sideOffset={8}
       >

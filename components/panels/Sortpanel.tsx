@@ -76,7 +76,7 @@ export function SortPanel<T>({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-64 p-0 shadow-xl"
+        className="w-64 p-0 shadow-2xl bg-card"
         align="center"
         sideOffset={8}
       >
@@ -105,7 +105,7 @@ export function SortPanel<T>({
                 key={String(sortCfg.field)}
                 type="button"
                 onClick={() => handleFieldClick(sortCfg.field)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors hover:bg-muted ${
+                className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors hover:bg-muted border-b border-border ${
                   isActive
                     ? "text-foreground font-medium"
                     : "text-muted-foreground"
@@ -133,7 +133,7 @@ export function SortPanel<T>({
 
         {/* Direction hint */}
         {hasSort && (
-          <div className="px-4 py-2 border-t">
+          <div className="px-4 py-2">
             <p className="text-xs text-muted-foreground">
               Натисніть знову щоб змінити напрямок, ще раз — скинути
             </p>
