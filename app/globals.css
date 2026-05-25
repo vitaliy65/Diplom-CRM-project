@@ -341,3 +341,7 @@
 .view-box {
   @apply md:p-8 p-2 h-full justify-center;
 }
+
+.container-layout {
+  @apply flex h-full flex-col flex-1 gap-4 w-full;
+}

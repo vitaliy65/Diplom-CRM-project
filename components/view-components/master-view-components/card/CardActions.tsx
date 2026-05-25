@@ -8,18 +8,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "react-day-picker";
+import { Button } from "@/components/ui/button"; // FIXED: use our Button (not from react-day-picker)
 
 export function CardActions({
   status,
   onStatusChange,
   comment,
   setComment,
+  onAddComment, // NEW: lift handler to parent for add comment
 }: {
   status: TicketStatus;
   onStatusChange: (status: TicketStatus) => void;
   comment: string;
   setComment: (c: string) => void;
+  onAddComment: () => void; // NEW: add submit prop
 }) {
   return (
     <div className="space-y-3">
@@ -49,6 +51,8 @@ export function CardActions({
       <Button
         className="w-full bg-primary hover:bg-primary/90 gap-2"
         disabled={!comment.trim()}
+        onClick={onAddComment}
+        type="button"
       >
         <MessageSquare className="h-4 w-4" />
         Додати коментар

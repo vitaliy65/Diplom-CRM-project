@@ -172,7 +172,15 @@ const servicesSlice = createSlice({
         state.error =
           (action.payload as string) || "Помилка оновлення послуги.";
       })
+      .addCase(deleteService.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
+      .addCase(deleteService.fulfilled, (state) => {
+        state.saving = false;
+      })
       .addCase(deleteService.rejected, (state, action) => {
+        state.saving = false;
         state.error =
           (action.payload as string) || "Помилка видалення послуги.";
       });

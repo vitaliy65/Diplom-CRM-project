@@ -15,9 +15,16 @@ export interface Ticket {
   createdAt: string;
   readyAt: string;
   slaViolation: boolean;
-  comments: string[];
+  comments: Comment[];
   services: string[];
   usedParts: UsedPartsTicket[];
+}
+
+export interface Comment {
+  text: string;
+  createdAt: string;
+  authorId: string;
+  authorName: string;
 }
 
 export interface UsedPartsTicket {

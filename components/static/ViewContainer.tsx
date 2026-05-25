@@ -27,7 +27,7 @@ export default function ViewContainer(props: ViewContainerI) {
             </p>
           </div>
           <span className="w-full border-b border-border"></span>
-          <div className="view-box flex flex-1">{props.children}</div>
+          <div className="view-box flex">{props.children}</div>
         </div>
       </motion.div>
     </AnimatePresence>

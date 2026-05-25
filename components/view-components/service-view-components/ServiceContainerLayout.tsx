@@ -67,7 +67,7 @@ export default function ServiceContainerLayout() {
   };
 
   return (
-    <div className="flex h-full flex-col flex-1 gap-4">
+    <div className="container-layout">
       <TopViewButtons
         ChildrenCreateDialog={<CreateServiceDialog />}
         data={services}

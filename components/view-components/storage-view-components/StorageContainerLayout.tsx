@@ -75,7 +75,7 @@ export default function StorageContainerLayout() {
   // If loading, show skeleton
   if (!storage) {
     return (
-      <div className="flex h-full flex-col flex-1 gap-4">
+      <div className="container-layout">
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-80 w-full" />
       </div>
@@ -83,7 +83,7 @@ export default function StorageContainerLayout() {
   }
 
   return (
-    <div className="flex h-full flex-col flex-1 gap-4">
+    <div className="container-layout">
       <TopViewButtons
         ChildrenCreateDialog={<CreateStorageDialog />}
         data={storage}

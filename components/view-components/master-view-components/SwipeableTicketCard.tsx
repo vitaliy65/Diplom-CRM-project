@@ -8,8 +8,8 @@ import {
 } from "framer-motion";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { changeTicketStatus } from "@/store/slices/tickets-slice";
-import { TicketStatus, Service, Ticket } from "@/lib/types";
+import { changeTicketStatus, updateTicket } from "@/store/slices/tickets-slice";
+import { TicketStatus, Ticket, Comment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Phone } from "lucide-react";
 import { ServiceList } from "./card/ServiceList";
@@ -32,6 +32,7 @@ export function SwipeableTicketCard({
   const [comment, setComment] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
   const services = useAppSelector((s) => s.services.items);
+  const currentUser = useAppSelector((s) => s.auth.user);
 
   const x = useMotionValue(0);
   const background = useTransform(
@@ -64,6 +65,48 @@ export function SwipeableTicketCard({
     );
     toast.success("Статус оновлено");
     setStatus(newStatus);
+  };
+
+  // Handler for adding comments (updates ticket's comments array)
+  const handleAddComment = async () => {
+    const trimmedComment = comment.trim();
+    if (!trimmedComment) return;
+
+    // Compose new comment object with type safety (Comment from types)
+    const userInfo = {
+      id: currentUser?.id ?? "me",
+      name: currentUser?.name ?? "Майстер",
+    };
+
+    // Prepare new comment array: always as array of Comment
+    const existing: Comment[] = Array.isArray(ticket.comments)
+      ? ticket.comments.filter(
+          (c: any): c is Comment =>
+            c &&
+            typeof c === "object" &&
+            typeof c.text === "string" &&
+            typeof c.createdAt === "string" &&
+            typeof c.authorId === "string" &&
+            typeof c.authorName === "string",
+        )
+      : [];
+
+    const nextComments: Comment[] = [
+      ...existing,
+      {
+        text: trimmedComment,
+        createdAt: new Date().toISOString(),
+        authorId: userInfo.id,
+        authorName: userInfo.name,
+      },
+    ];
+
+    // Call the updateTicket thunk with correct type
+    await dispatch(
+      updateTicket({ id: ticket.id, data: { comments: nextComments } }),
+    );
+    setComment("");
+    toast.success("Коментар додано");
   };
 
   return (
@@ -188,6 +231,7 @@ export function SwipeableTicketCard({
                   onStatusChange={handleStatusChange}
                   comment={comment}
                   setComment={setComment}
+                  onAddComment={handleAddComment}
                 />
               </div>
             </motion.div>

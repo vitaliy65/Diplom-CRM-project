@@ -122,6 +122,25 @@ export const deleteSparePart = createAsyncThunk(
   },
 );
 
+// New thunk: deletePart (by analogy to deleteSparePart)
+export const deletePart = createAsyncThunk(
+  "storage/deletePart",
+  async (id: string, { getState, rejectWithValue }) => {
+    if (!db || !isFirebaseConfigured) {
+      return rejectWithValue("Firebase не налаштований.");
+    }
+    const role = (getState() as RootState).auth.user?.role;
+    if (!canManageStorage(role)) {
+      return rejectWithValue("Недостатньо прав для видалення запчастини.");
+    }
+    try {
+      await deleteDoc(doc(db, "storage", id));
+    } catch {
+      return rejectWithValue("Не вдалося видалити запчастину.");
+    }
+  },
+);
+
 const storageSlice = createSlice({
   name: "storage",
   initialState,
@@ -174,6 +193,10 @@ const storageSlice = createSlice({
           (action.payload as string) || "Помилка оновлення запчастини.";
       })
       .addCase(deleteSparePart.rejected, (state, action) => {
+        state.error =
+          (action.payload as string) || "Помилка видалення запчастини.";
+      })
+      .addCase(deletePart.rejected, (state, action) => {
         state.error =
           (action.payload as string) || "Помилка видалення запчастини.";
       });

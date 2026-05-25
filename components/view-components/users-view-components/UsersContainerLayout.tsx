@@ -44,7 +44,7 @@ export default function UsersContainerLayout() {
   };
 
   return (
-    <div className="flex h-full flex-col flex-1 gap-4">
+    <div className="container-layout">
       {/* Stats */}
       <motion.div
         variants={variantItem}

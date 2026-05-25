@@ -5,6 +5,7 @@ import {
   doc,
   onSnapshot,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
@@ -43,6 +44,10 @@ function canCreateTicket(role?: UserRole) {
 
 function canUpdateTicket(role?: UserRole) {
   return role === "admin" || role === "manager" || role === "master";
+}
+
+function canDeleteTicket(role?: UserRole) {
+  return role === "admin" || role === "manager";
 }
 
 export const subscribeTickets = createAsyncThunk(
@@ -118,6 +123,24 @@ export const updateTicket = createAsyncThunk(
       await updateDoc(doc(db, "tickets", payload.id), payload.data);
     } catch {
       return rejectWithValue("Не вдалося оновити заявку.");
+    }
+  },
+);
+
+export const deleteTicket = createAsyncThunk(
+  "tickets/delete",
+  async (ticketId: string, { getState, rejectWithValue }) => {
+    if (!db || !isFirebaseConfigured) {
+      return rejectWithValue("Firebase не налаштований.");
+    }
+    const role = (getState() as RootState).auth.user?.role;
+    if (!canDeleteTicket(role)) {
+      return rejectWithValue("Недостатньо прав для видалення заявки.");
+    }
+    try {
+      await deleteDoc(doc(db, "tickets", ticketId));
+    } catch {
+      return rejectWithValue("Не вдалося видалити заявку.");
     }
   },
 );
@@ -208,6 +231,17 @@ const ticketsSlice = createSlice({
       .addCase(updateTicket.rejected, (state, action) => {
         state.saving = false;
         state.error = (action.payload as string) || "Помилка оновлення заявки.";
+      })
+      .addCase(deleteTicket.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
+      .addCase(deleteTicket.fulfilled, (state) => {
+        state.saving = false;
+      })
+      .addCase(deleteTicket.rejected, (state, action) => {
+        state.saving = false;
+        state.error = (action.payload as string) || "Помилка видалення заявки.";
       })
       .addCase(changeTicketStatus.rejected, (state, action) => {
         state.error = (action.payload as string) || "Помилка зміни статусу.";
