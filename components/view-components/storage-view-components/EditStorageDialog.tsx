@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import type { SpareParts } from "@/lib/types";
 import { toast } from "sonner";
+import { sparePartSchema } from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
 import DialogInput from "@/components/DialogInput";
 
 type EditStorageDialogProps = {
@@ -62,10 +64,15 @@ export function EditStorageDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingStorage) return;
+    const parsed = parseWithSchema(sparePartSchema, formData);
+    if (!parsed.success) {
+      toast.error(parsed.message);
+      return;
+    }
     const result = await dispatch(
       updateSparePart({
         id: editingStorage.id,
-        data: formData,
+        data: parsed.data,
       }),
     );
     if (updateSparePart.fulfilled.match(result)) {

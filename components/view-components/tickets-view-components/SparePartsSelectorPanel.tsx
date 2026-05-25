@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 type SparePartsSelectorPanelProps = {
   selectedParts: UsedPartsTicket[];
   onToggle: (id: string, name: string) => void;
-  onQuantityChange: (id: string, quantity: string) => void;
+  onQuantityChange: (id: string, quantity: number) => void;
 };
 
 export function SparePartsSelectorPanel({
@@ -122,9 +122,12 @@ export function SparePartsSelectorPanel({
                       min="1"
                       max={part.count}
                       value={selected?.quantity ?? "1"}
-                      onChange={(e) =>
-                        onQuantityChange(part.id, e.target.value)
-                      }
+                      onChange={(e) => {
+                        let n = parseInt(e.target.value, 10);
+                        if (Number.isNaN(n) || n < 1) n = 1;
+                        if (n > part.count) n = part.count;
+                        onQuantityChange(part.id, n);
+                      }}
                       onClick={(e) => e.stopPropagation()}
                       className="h-7 w-20 text-xs"
                     />

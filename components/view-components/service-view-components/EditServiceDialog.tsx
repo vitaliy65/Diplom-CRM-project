@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import type { Service } from "@/lib/types";
 import { toast } from "sonner";
+import { serviceSchema } from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
 import DialogInput from "@/components/DialogInput";
 
 type EditServiceDialogProps = {
@@ -60,20 +62,26 @@ export function EditServiceDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingService) return;
+    const payload = {
+      ...formData,
+      discount: Math.max(
+        0,
+        Math.round(
+          ((formData.base_price - formData.final_price) /
+            (formData.base_price || 1)) *
+            100,
+        ),
+      ),
+    };
+    const parsed = parseWithSchema(serviceSchema, payload);
+    if (!parsed.success) {
+      toast.error(parsed.message);
+      return;
+    }
     const result = await dispatch(
       updateService({
         id: editingService.id,
-        data: {
-          ...formData,
-          discount: Math.max(
-            0,
-            Math.round(
-              ((formData.base_price - formData.final_price) /
-                (formData.base_price || 1)) *
-                100,
-            ),
-          ),
-        },
+        data: parsed.data,
       }),
     );
     if (updateService.fulfilled.match(result)) {

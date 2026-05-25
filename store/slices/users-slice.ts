@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
+import { syncTicketsForMaster } from "@/lib/ticket-sync";
 import type { UserProfile } from "@/lib/types";
 
 // ---
@@ -66,6 +67,9 @@ export const updateUser = createAsyncThunk(
     }
     try {
       await updateDoc(doc(db, "users", payload.id), payload.data);
+      if (payload.data.name) {
+        await syncTicketsForMaster(payload.id, payload.data.name);
+      }
     } catch {
       return rejectWithValue("Не вдалося оновити користувача.");
     }

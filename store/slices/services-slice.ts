@@ -11,11 +11,14 @@ import {
 import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
 import type { Service, UserRole } from "@/lib/types";
+import { serviceSchema } from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
 
 // Добавляем поля пагинации и фильтрации в стейт
 type ServicesState = {
   items: Service[];
   filteredItems: Service[];
+  filterActive: boolean;
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -28,6 +31,7 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 const initialState: ServicesState = {
   items: [],
   filteredItems: [],
+  filterActive: false,
   loading: true,
   saving: false,
   error: null,
@@ -71,9 +75,14 @@ export const createService = createAsyncThunk(
     if (!canManageServices(role)) {
       return rejectWithValue("Недостатньо прав для створення послуги.");
     }
+    const parsed = parseWithSchema(serviceSchema, payload);
+    if (!parsed.success) {
+      return rejectWithValue(parsed.message);
+    }
+
     try {
       await addDoc(collection(db, "services"), {
-        ...payload,
+        ...parsed.data,
         createdAt: serverTimestamp(),
       });
     } catch {
@@ -95,8 +104,13 @@ export const updateService = createAsyncThunk(
     if (!canManageServices(role)) {
       return rejectWithValue("Недостатньо прав для редагування послуги.");
     }
+    const parsed = parseWithSchema(serviceSchema.partial(), payload.data);
+    if (!parsed.success) {
+      return rejectWithValue(parsed.message);
+    }
+
     try {
-      await updateDoc(doc(db, "services", payload.id), payload.data);
+      await updateDoc(doc(db, "services", payload.id), parsed.data);
     } catch {
       return rejectWithValue("Не вдалося оновити послугу.");
     }
@@ -132,11 +146,13 @@ const servicesSlice = createSlice({
     },
     setFilteredItems: (state, action: { payload: Service[] }) => {
       state.filteredItems = action.payload;
-      state.currentPage = 1; // Сброс страницы при установке нового фильтра
+      state.filterActive = true;
+      state.currentPage = 1;
     },
     clearFilteredItems: (state) => {
       state.filteredItems = [];
-      state.currentPage = 1; // Сброс страницы при сбросе фильтра
+      state.filterActive = false;
+      state.currentPage = 1;
     },
     setCurrentPage: (state, action: { payload: number }) => {
       state.currentPage = action.payload;
@@ -197,15 +213,16 @@ export const selectServicesSaving = (state: RootState) => state.services.saving;
 export const selectServicesError = (state: RootState) => state.services.error;
 
 export const selectPaginatedServices = (state: RootState) => {
-  const { items, filteredItems, currentPage, rowsPerPage } = state.services;
-  const data = filteredItems.length > 0 ? filteredItems : items;
+  const { items, filteredItems, filterActive, currentPage, rowsPerPage } =
+    state.services;
+  const data = filterActive ? filteredItems : items;
   const startIdx = (currentPage - 1) * rowsPerPage;
   const endIdx = startIdx + rowsPerPage;
   return data.slice(startIdx, endIdx);
 };
 export const selectServicesTotalRows = (state: RootState) => {
-  const { items, filteredItems } = state.services;
-  return filteredItems.length > 0 ? filteredItems.length : items.length;
+  const { items, filteredItems, filterActive } = state.services;
+  return filterActive ? filteredItems.length : items.length;
 };
 export const selectServicesCurrentPage = (state: RootState) =>
   state.services.currentPage;

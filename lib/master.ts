@@ -1,17 +1,13 @@
-import { Ticket, UserProfile } from "./types";
+import { Ticket } from "./types";
+import { computeSlaViolation } from "./sla";
 
 /**
- * Вычисляет среднее время ремонта (в днях) для всех мастеров.
- * Возвращает число с 1 знаком после запятой. Если нет завершённых тикетов — возвращает null.
- *
- * @param tickets Список всех тикетов
- * @returns Среднее время ремонта в днях (number) или null, если нет завершённых тикетов
+ * Середній час ремонту (дні) по всіх завершених заявках.
+ * Для статистики по майстрах використовуйте getAverageRepairTimeByMaster.
  */
-export function getAverageRepairTimeForAllMasters(
+export function getGlobalAverageRepairTimeDays(
   tickets: Ticket[],
 ): number | null {
-  console.log(tickets);
-  // Фильтруем завершённые тикеты (ready/delivered) и у которых есть даты начала и окончания
   const completedTickets = tickets.filter(
     (t) =>
       (t.status === "ready" || t.status === "delivered") &&
@@ -21,38 +17,74 @@ export function getAverageRepairTimeForAllMasters(
 
   if (completedTickets.length === 0) return null;
 
-  // Суммируем разницу между createdAt и readyAt
   let totalMs = 0;
+  let counted = 0;
 
   for (const ticket of completedTickets) {
     const created = new Date(ticket.createdAt).getTime();
     const ready = new Date(ticket.readyAt).getTime();
-    if (!isNaN(created) && !isNaN(ready) && ready > created) {
+    if (!Number.isNaN(created) && !Number.isNaN(ready) && ready > created) {
       totalMs += ready - created;
+      counted += 1;
     }
   }
 
-  const avgMs = totalMs / completedTickets.length;
-  const days = avgMs / (1000 * 60 * 60 * 24);
-  // Округляем до 1 знака после запятой
-  console.log(Math.round(days * 10) / 10);
+  if (counted === 0) return null;
+
+  const days = totalMs / counted / (1000 * 60 * 60 * 24);
   return Math.round(days * 10) / 10;
 }
 
+/** Середній час ремонту по кожному майстру (masterId → дні) */
+export function getAverageRepairTimeByMaster(
+  tickets: Ticket[],
+): Record<string, number> {
+  const byMaster: Record<string, { totalMs: number; count: number }> = {};
+
+  for (const ticket of tickets) {
+    if (
+      !ticket.masterId ||
+      (ticket.status !== "ready" && ticket.status !== "delivered") ||
+      !ticket.createdAt ||
+      !ticket.readyAt
+    ) {
+      continue;
+    }
+    const created = new Date(ticket.createdAt).getTime();
+    const ready = new Date(ticket.readyAt).getTime();
+    if (Number.isNaN(created) || Number.isNaN(ready) || ready <= created) {
+      continue;
+    }
+    const entry = byMaster[ticket.masterId] ?? { totalMs: 0, count: 0 };
+    entry.totalMs += ready - created;
+    entry.count += 1;
+    byMaster[ticket.masterId] = entry;
+  }
+
+  const result: Record<string, number> = {};
+  for (const [masterId, { totalMs, count }] of Object.entries(byMaster)) {
+    if (count === 0) continue;
+    const days = totalMs / count / (1000 * 60 * 60 * 24);
+    result[masterId] = Math.round(days * 10) / 10;
+  }
+  return result;
+}
+
 /**
- * Вычисляет процент тикетов, завершённых без SLA нарушения.
- * Возвращает целое число 0–100.
- *
- * @param tickets Список всех тикетов
- * @returns Процент тикетов, завершённых без SLA нарушения (0–100)
+ * Відсоток завершених заявок без порушення SLA (обчислюється, не з ручного прапорця).
+ * null — якщо немає завершених заявок.
  */
-export function getSlaPercent(tickets: Ticket[]): number {
-  // Считаем только тикеты, которые завершены (ready/delivered)
+export function getSlaPercent(tickets: Ticket[]): number | null {
   const completed = tickets.filter(
     (t) => t.status === "ready" || t.status === "delivered",
   );
-  if (completed.length === 0) return 0;
+  if (completed.length === 0) return null;
 
-  const withoutViolation = completed.filter((t) => !t.slaViolation).length;
+  const withoutViolation = completed.filter(
+    (t) => !computeSlaViolation(t),
+  ).length;
   return Math.round((withoutViolation / completed.length) * 100);
 }
+
+/** @deprecated Використовуйте getGlobalAverageRepairTimeDays */
+export const getAverageRepairTimeForAllMasters = getGlobalAverageRepairTimeDays;

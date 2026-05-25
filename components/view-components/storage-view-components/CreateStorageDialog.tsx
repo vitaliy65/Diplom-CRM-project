@@ -9,6 +9,8 @@ import { Plus } from "lucide-react";
 import { useAppDispatch } from "@/store/hooks";
 import { createSparePart } from "@/store/slices/storage-slice";
 import { toast } from "sonner";
+import { sparePartSchema } from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
 
 export function CreateStorageDialog() {
   const [formData, setFormData] = useState<Omit<SpareParts, "id">>({
@@ -33,7 +35,12 @@ export function CreateStorageDialog() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await dispatch(createSparePart(formData));
+    const parsed = parseWithSchema(sparePartSchema, formData);
+    if (!parsed.success) {
+      toast.error(parsed.message);
+      return;
+    }
+    const result = await dispatch(createSparePart(parsed.data));
     if (createSparePart.fulfilled.match(result)) {
       toast.success("Запчастину додано");
       setIsCreateDialogOpen(false);
@@ -69,7 +76,7 @@ export function CreateStorageDialog() {
             <DialogInput
               label="Опис"
               name="description"
-              value={formData.description}
+              value={formData.description || ""}
               onChange={handleChange}
             />
             <div className="space-y-2 space-x-4">

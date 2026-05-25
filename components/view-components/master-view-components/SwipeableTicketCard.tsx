@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   motion,
   useMotionValue,
@@ -10,9 +10,14 @@ import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { changeTicketStatus, updateTicket } from "@/store/slices/tickets-slice";
 import { TicketStatus, Ticket, Comment } from "@/lib/types";
+import { getNextStatus } from "@/lib/ticket-status";
+import { computeSlaViolation } from "@/lib/sla";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Phone } from "lucide-react";
 import { ServiceList } from "./card/ServiceList";
+import { UsedPartsList } from "./card/UsedPartsList";
+import { enrichUsedParts } from "@/lib/storage-stock";
+import { selectStorage } from "@/store/slices/storage-slice";
 import { CommentsList } from "./card/CommentsList";
 import { CardActions } from "./card/CardActions";
 import { CardHeader } from "./card/CardHeader";
@@ -32,6 +37,7 @@ export function SwipeableTicketCard({
   const [comment, setComment] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
   const services = useAppSelector((s) => s.services.items);
+  const storage = useAppSelector(selectStorage);
   const currentUser = useAppSelector((s) => s.auth.user);
 
   const x = useMotionValue(0);
@@ -42,29 +48,47 @@ export function SwipeableTicketCard({
   );
   const checkOpacity = useTransform(x, [0, 100], [0, 1]);
 
-  const handleDragEnd = (
+  const slaActive = computeSlaViolation(ticket);
+  const ticketServiceIds = ticket.services ?? [];
+  const ticketUsedParts = useMemo(
+    () => enrichUsedParts(ticket.usedParts ?? [], storage),
+    [ticket.usedParts, storage],
+  );
+
+  const handleDragEnd = async (
     _: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo,
   ) => {
-    if (info.offset.x > 100) {
-      void dispatch(
-        changeTicketStatus({
-          id: ticket.id,
-          oldStatus: status,
-          newStatus: "ready",
-        }),
-      );
+    if (info.offset.x <= 100) return;
+    const next = getNextStatus(status);
+    if (!next) return;
+    const result = await dispatch(
+      changeTicketStatus({
+        id: ticket.id,
+        oldStatus: status,
+        newStatus: next,
+      }),
+    );
+    if (changeTicketStatus.fulfilled.match(result)) {
+      setStatus(next);
       setIsCompleted(true);
       setTimeout(() => setIsCompleted(false), 2000);
+      toast.success("Статус оновлено");
+    } else {
+      toast.error((result.payload as string) || "Помилка зміни статусу");
     }
   };
 
-  const handleStatusChange = (newStatus: TicketStatus) => {
-    void dispatch(
+  const handleStatusChange = async (newStatus: TicketStatus) => {
+    const result = await dispatch(
       changeTicketStatus({ id: ticket.id, oldStatus: status, newStatus }),
     );
-    toast.success("Статус оновлено");
-    setStatus(newStatus);
+    if (changeTicketStatus.fulfilled.match(result)) {
+      toast.success("Статус оновлено");
+      setStatus(newStatus);
+    } else {
+      toast.error((result.payload as string) || "Помилка зміни статусу");
+    }
   };
 
   // Handler for adding comments (updates ticket's comments array)
@@ -136,11 +160,11 @@ export function SwipeableTicketCard({
         style={{ x }}
         className={cn(
           "relative bento-card hover:scale-100! cursor-grab active:cursor-grabbing",
-          ticket.slaViolation && "border-l-2 border-l-glow-red",
+          slaActive && "border-l-2 border-l-glow-red",
         )}
       >
         {/* SLA Warning */}
-        {ticket.slaViolation && (
+        {slaActive && (
           <motion.div
             className="absolute right-3 top-3"
             animate={{ scale: [1, 1.2, 1] }}
@@ -218,9 +242,11 @@ export function SwipeableTicketCard({
                 {/* Services Card List */}
                 <ServiceList
                   services={services.filter((s) =>
-                    ticket.services.includes(s.id),
+                    ticketServiceIds.includes(s.id),
                   )}
                 />
+
+                <UsedPartsList parts={ticketUsedParts} />
 
                 {/* Comments */}
                 <CommentsList comments={ticket.comments} />

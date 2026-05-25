@@ -9,6 +9,8 @@ import ModalDialogConateiner from "@/components/ModalDialogConateiner";
 import { useAppDispatch } from "@/store/hooks";
 import { createService } from "@/store/slices/services-slice";
 import { toast } from "sonner";
+import { serviceSchema } from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
 type ServiceFormInitial = Omit<Service, "id">;
 
 type ServiceFormProps = {
@@ -40,13 +42,12 @@ export function CreateServiceDialog({ initial, saving }: ServiceFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload = {
-      name: formData.name,
-      base_price: Number(formData.base_price),
-      final_price: Number(formData.final_price),
-      discount: Number(formData.discount),
-    };
-    const result = await dispatch(createService(payload));
+    const parsed = parseWithSchema(serviceSchema, formData);
+    if (!parsed.success) {
+      toast.error(parsed.message);
+      return;
+    }
+    const result = await dispatch(createService(parsed.data));
     if (createService.fulfilled.match(result)) {
       toast.success("Сервіс додано");
       setIsCreateDialogOpen(false);

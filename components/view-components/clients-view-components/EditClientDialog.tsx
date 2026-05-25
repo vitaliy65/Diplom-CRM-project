@@ -9,6 +9,8 @@ import { X } from "lucide-react";
 import type { Client } from "@/lib/types";
 import { toast } from "sonner";
 import DialogInput from "@/components/DialogInput";
+import { clientSchema } from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
 
 type EditClientDialogProps = {
   editingClient: Client | null;
@@ -54,8 +56,13 @@ export function EditClientDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingClient) return;
+    const parsed = parseWithSchema(clientSchema, formData);
+    if (!parsed.success) {
+      toast.error(parsed.message);
+      return;
+    }
     const result = await dispatch(
-      updateClient({ id: editingClient.id, data: formData }),
+      updateClient({ id: editingClient.id, data: parsed.data }),
     );
     if (updateClient.fulfilled.match(result)) {
       toast.success("Клієнта оновлено");

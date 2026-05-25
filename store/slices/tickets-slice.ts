@@ -10,16 +10,29 @@ import {
 import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
 import type { Ticket, TicketStatus, UserRole } from "@/lib/types";
+import { computeSlaViolation } from "@/lib/sla";
+import { canTransition, getStatusTransitionError } from "@/lib/ticket-status";
+import { commitStockDeltas } from "@/lib/ticket-firestore";
+import { enrichUsedParts } from "@/lib/storage-stock";
+import {
+  countTicketsForClient,
+  normalizeTicketFromFirestore,
+  resolveTicketSnapshots,
+  setClientTicketCount,
+} from "@/lib/ticket-sync";
+import {
+  createTicketSchema,
+  updateTicketSchema,
+} from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
 
-// New pagination state
 type TicketsState = {
   items: Ticket[];
   filteredItems: Ticket[];
+  filterActive: boolean;
   loading: boolean;
   saving: boolean;
   error: string | null;
-
-  // Пагинация
   currentPage: number;
   rowsPerPage: number;
 };
@@ -29,6 +42,7 @@ const DEFAULT_ROWS_PER_PAGE = 10;
 const initialState: TicketsState = {
   items: [],
   filteredItems: [],
+  filterActive: false,
   loading: true,
   saving: false,
   error: null,
@@ -50,6 +64,15 @@ function canDeleteTicket(role?: UserRole) {
   return role === "admin" || role === "manager";
 }
 
+function getTicketContext(state: RootState) {
+  return {
+    clients: state.clients.items,
+    masters: state.users.items.filter((u) => u.role === "master"),
+    storage: state.storage.items,
+    tickets: state.tickets.items,
+  };
+}
+
 export const subscribeTickets = createAsyncThunk(
   "tickets/subscribe",
   async (_, { dispatch }) => {
@@ -61,10 +84,9 @@ export const subscribeTickets = createAsyncThunk(
       return;
     }
     unsubscribeTickets = onSnapshot(collection(db, "tickets"), (snapshot) => {
-      const items: Ticket[] = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...(d.data() as Omit<Ticket, "id">),
-      }));
+      const items: Ticket[] = snapshot.docs.map((d) =>
+        normalizeTicketFromFirestore(d.id, d.data() as Partial<Ticket>),
+      );
       dispatch(ticketsSlice.actions.setTickets(items));
     });
   },
@@ -76,31 +98,56 @@ export const createTicket = createAsyncThunk(
     if (!db || !isFirebaseConfigured) {
       return rejectWithValue("Firebase не налаштований.");
     }
-    const role = (getState() as RootState).auth.user?.role;
+    const state = getState() as RootState;
+    const role = state.auth.user?.role;
     if (!canCreateTicket(role)) {
       return rejectWithValue("Недостатньо прав для створення заявки.");
     }
+
+    const ctx = getTicketContext(getState() as RootState);
+    const payloadWithParts = {
+      ...payload,
+      usedParts: enrichUsedParts(
+        payload.usedParts as Ticket["usedParts"],
+        ctx.storage,
+      ),
+    };
+    const parsed = parseWithSchema(createTicketSchema, payloadWithParts);
+    if (!parsed.success) {
+      return rejectWithValue(parsed.message);
+    }
+
+    const enriched = resolveTicketSnapshots(
+      parsed.data as Partial<Ticket>,
+      ctx.clients,
+      ctx.masters,
+    );
+    const usedParts = enrichUsedParts(enriched.usedParts, ctx.storage);
+
+    const stockError = await commitStockDeltas(ctx.storage, [], usedParts);
+    if (stockError) {
+      return rejectWithValue(stockError);
+    }
+
     try {
       await addDoc(collection(db, "tickets"), {
-        ...payload,
+        ...enriched,
         status: "received",
         masterId: null,
         masterName: null,
         createdAt: new Date().toISOString(),
+        readyAt: "",
         slaViolation: false,
         comments: [],
       });
 
-      const clientId = payload.clientId as string;
+      const clientId = enriched.clientId as string;
       if (clientId) {
-        const existing = (getState() as RootState).clients.items.find(
-          (c) => c.id === clientId,
-        );
-        await updateDoc(doc(collection(db, "clients"), clientId), {
-          ticketCount: (existing?.ticketCount || 0) + 1,
-        });
+        const count = countTicketsForClient(ctx.tickets, clientId) + 1;
+        await setClientTicketCount(clientId, count);
       }
     } catch {
+      await commitStockDeltas(ctx.storage, usedParts, []);
       return rejectWithValue("Не вдалося створити заявку.");
     }
   },
@@ -115,13 +162,99 @@ export const updateTicket = createAsyncThunk(
     if (!db || !isFirebaseConfigured) {
       return rejectWithValue("Firebase не налаштований.");
     }
-    const role = (getState() as RootState).auth.user?.role;
+    const state = getState() as RootState;
+    const role = state.auth.user?.role;
     if (!canUpdateTicket(role)) {
       return rejectWithValue("Недостатньо прав для редагування заявки.");
     }
+
+    const existing = state.tickets.items.find((t) => t.id === payload.id);
+    if (!existing) {
+      return rejectWithValue("Заявку не знайдено.");
+    }
+
+    const ctx = getTicketContext(state);
+    const dataToValidate = {
+      ...payload.data,
+      ...(payload.data.usedParts !== undefined
+        ? {
+            usedParts: enrichUsedParts(payload.data.usedParts, ctx.storage),
+          }
+        : {}),
+    };
+    const parsed = parseWithSchema(updateTicketSchema, dataToValidate);
+    if (!parsed.success) {
+      return rejectWithValue(parsed.message);
+    }
+    const { slaViolation: _ignoredSla, ...safeData } = parsed.data as Partial<
+      Ticket & { slaViolation?: boolean }
+    >;
+    const merged = { ...existing, ...safeData };
+    const enriched = resolveTicketSnapshots(merged, ctx.clients, ctx.masters);
+
+    if (
+      enriched.status &&
+      enriched.status !== existing.status &&
+      !canTransition(existing.status, enriched.status)
+    ) {
+      return rejectWithValue(
+        getStatusTransitionError(existing.status, enriched.status) ??
+          "Недопустима зміна статусу.",
+      );
+    }
+
+    if (role === "master") {
+      const allowed =
+        enriched.status === existing.status ||
+        ((existing.status === "received" ||
+          existing.status === "in-progress") &&
+          enriched.status === "in-progress") ||
+        (existing.status === "in-progress" && enriched.status === "ready");
+      if (!allowed) {
+        return rejectWithValue("Майстер не може встановити цей статус.");
+      }
+    }
+
+    const oldParts = existing.usedParts ?? [];
+    const newParts = enriched.usedParts ?? oldParts;
+    const stockError = await commitStockDeltas(ctx.storage, oldParts, newParts);
+    if (stockError) {
+      return rejectWithValue(stockError);
+    }
+
+    const updateData: Partial<Ticket> = { ...enriched };
+    delete (updateData as { id?: string }).id;
+
+    if (enriched.status === "ready" && existing.status !== "ready") {
+      updateData.readyAt = new Date().toISOString();
+    }
+
+    updateData.slaViolation = computeSlaViolation({
+      ...existing,
+      ...updateData,
+      readyAt: updateData.readyAt ?? existing.readyAt,
+    } as Ticket);
+
     try {
-      await updateDoc(doc(db, "tickets", payload.id), payload.data);
+      await updateDoc(doc(db, "tickets", payload.id), updateData);
+
+      if (enriched.clientId && enriched.clientId !== existing.clientId) {
+        if (existing.clientId) {
+          const oldCount = countTicketsForClient(
+            ctx.tickets.filter((t) => t.id !== payload.id),
+            existing.clientId,
+          );
+          await setClientTicketCount(existing.clientId, oldCount);
+        }
+        const newCount =
+          countTicketsForClient(
+            ctx.tickets.filter((t) => t.id !== payload.id),
+            enriched.clientId,
+          ) + 1;
+        await setClientTicketCount(enriched.clientId, newCount);
+      }
     } catch {
+      await commitStockDeltas(ctx.storage, newParts, oldParts);
       return rejectWithValue("Не вдалося оновити заявку.");
     }
   },
@@ -133,13 +266,38 @@ export const deleteTicket = createAsyncThunk(
     if (!db || !isFirebaseConfigured) {
       return rejectWithValue("Firebase не налаштований.");
     }
-    const role = (getState() as RootState).auth.user?.role;
+    const state = getState() as RootState;
+    const role = state.auth.user?.role;
     if (!canDeleteTicket(role)) {
       return rejectWithValue("Недостатньо прав для видалення заявки.");
     }
+
+    const existing = state.tickets.items.find((t) => t.id === ticketId);
+    if (!existing) {
+      return rejectWithValue("Заявку не знайдено.");
+    }
+
+    const ctx = getTicketContext(state);
+    const stockError = await commitStockDeltas(
+      ctx.storage,
+      existing.usedParts ?? [],
+      [],
+    );
+    if (stockError) {
+      return rejectWithValue(stockError);
+    }
+
     try {
       await deleteDoc(doc(db, "tickets", ticketId));
+      if (existing.clientId) {
+        const count = countTicketsForClient(
+          ctx.tickets.filter((t) => t.id !== ticketId),
+          existing.clientId,
+        );
+        await setClientTicketCount(existing.clientId, count);
+      }
     } catch {
+      await commitStockDeltas(ctx.storage, [], existing.usedParts ?? []);
       return rejectWithValue("Не вдалося видалити заявку.");
     }
   },
@@ -159,19 +317,43 @@ export const changeTicketStatus = createAsyncThunk(
     if (!canUpdateTicket(currentUser?.role)) {
       return rejectWithValue("Недостатньо прав для зміни статусу.");
     }
+
+    const existing = state.tickets.items.find((t) => t.id === payload.id);
+    if (!existing) {
+      return rejectWithValue("Заявку не знайдено.");
+    }
+
+    const from = existing.status;
+    const to = payload.newStatus;
+
+    const transitionError = getStatusTransitionError(from, to);
+    if (transitionError) {
+      return rejectWithValue(transitionError);
+    }
+
+    if (currentUser?.role === "master") {
+      const masterAllowed =
+        (from === "received" && to === "in-progress") ||
+        (from === "in-progress" && to === "ready") ||
+        from === to;
+      if (!masterAllowed) {
+        return rejectWithValue("Майстер не може встановити цей статус.");
+      }
+    }
+
     try {
-      // Если статус меняется на "ready" — сохраняем readyAt, иначе не трогаем
-      const updateData: any = {
-        status: payload.newStatus,
-      };
-      if (payload.newStatus === "ready") {
+      const updateData: Partial<Ticket> = { status: to };
+      if (to === "ready" && from !== "ready") {
         updateData.readyAt = new Date().toISOString();
       }
+      const merged = { ...existing, ...updateData };
+      updateData.slaViolation = computeSlaViolation(merged);
+
       await updateDoc(doc(db, "tickets", payload.id), updateData);
       await addDoc(collection(db, "logs"), {
         ticketId: payload.id,
-        oldStatus: payload.oldStatus,
-        newStatus: payload.newStatus,
+        oldStatus: from,
+        newStatus: to,
         changedBy: currentUser?.id || "unknown",
         changedByName: currentUser?.name || "Невідомо",
         createdAt: new Date().toISOString(),
@@ -191,7 +373,6 @@ const ticketsSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
-    // Добавляем reducers для пагинации и фильтрации
     setCurrentPage: (state, action: { payload: number }) => {
       state.currentPage = action.payload;
     },
@@ -201,11 +382,13 @@ const ticketsSlice = createSlice({
     },
     setFilteredItems: (state, action: { payload: Ticket[] }) => {
       state.filteredItems = action.payload;
-      state.currentPage = 1; // Сброс страницы при установке нового фильтра
+      state.filterActive = true;
+      state.currentPage = 1;
     },
     clearFilteredItems: (state) => {
       state.filteredItems = [];
-      state.currentPage = 1; // Сброс страницы при сбросе фильтра
+      state.filterActive = false;
+      state.currentPage = 1;
     },
   },
   extraReducers: (builder) => {
@@ -249,7 +432,6 @@ const ticketsSlice = createSlice({
   },
 });
 
-// Селекторы для получения данных
 export const selectTickets = (state: RootState) => state.tickets.items;
 export const selectFilteredTickets = (state: RootState) =>
   state.tickets.filteredItems;
@@ -257,25 +439,25 @@ export const selectTicketsLoading = (state: RootState) => state.tickets.loading;
 export const selectTicketsSaving = (state: RootState) => state.tickets.saving;
 export const selectTicketsError = (state: RootState) => state.tickets.error;
 
-// Селектор для пагинированных данных с учетом фильтрации
 export const selectPaginatedTickets = (state: RootState) => {
-  const { items, filteredItems, currentPage, rowsPerPage } = state.tickets;
-  const data = filteredItems.length > 0 ? filteredItems : items;
+  const { items, filteredItems, filterActive, currentPage, rowsPerPage } =
+    state.tickets;
+  const data = filterActive ? filteredItems : items;
   const startIdx = (currentPage - 1) * rowsPerPage;
   const endIdx = startIdx + rowsPerPage;
   return data.slice(startIdx, endIdx);
 };
 
 export const selectTicketsTotalRows = (state: RootState) => {
-  const { items, filteredItems } = state.tickets;
-  return filteredItems.length > 0 ? filteredItems.length : items.length;
+  const { items, filteredItems, filterActive } = state.tickets;
+  return filterActive ? filteredItems.length : items.length;
 };
+
 export const selectTicketsCurrentPage = (state: RootState) =>
   state.tickets.currentPage;
 export const selectTicketsRowsPerPage = (state: RootState) =>
   state.tickets.rowsPerPage;
 
-// Экспортируем actions для управления пагинацией и фильтрацией
 export const {
   setCurrentPage,
   setRowsPerPage,

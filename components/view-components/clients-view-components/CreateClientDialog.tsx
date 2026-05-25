@@ -9,6 +9,8 @@ import { Plus } from "lucide-react";
 import { useAppDispatch } from "@/store/hooks";
 import { createClient } from "@/store/slices/clients-slice";
 import { toast } from "sonner";
+import { clientSchema } from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
 
 export function CreateClientDialog() {
   const [formData, setFormData] = useState({
@@ -21,7 +23,12 @@ export function CreateClientDialog() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await dispatch(createClient(formData));
+    const parsed = parseWithSchema(clientSchema, formData);
+    if (!parsed.success) {
+      toast.error(parsed.message);
+      return;
+    }
+    const result = await dispatch(createClient(parsed.data));
     if (createClient.fulfilled.match(result)) {
       toast.success("Клієнта додано");
       setIsCreateDialogOpen(false);

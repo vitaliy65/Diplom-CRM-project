@@ -36,7 +36,11 @@ import { setSelectedTicketId } from "@/store/slices/selected-ticket-slice";
 import { useRouter } from "next/navigation";
 import { menuItems } from "@/static/MenuItems";
 import { setActiveView } from "@/store/slices/view-slice";
-import { getAverageRepairTimeForAllMasters, getSlaPercent } from "@/lib/master";
+import {
+  getGlobalAverageRepairTimeDays,
+  getSlaPercent,
+} from "@/lib/master";
+import { computeSlaViolation } from "@/lib/sla";
 import ViewContainer from "@/components/static/ViewContainer";
 
 let _dashboardAnimated = false;
@@ -84,6 +88,48 @@ const PIE_FALLBACK = [
   { name: "Немає даних", value: 1, color: "#ccc", total: 1 },
 ];
 
+function SlaRing({ percent }: { percent: number }) {
+  const size = 128;
+  const strokeWidth = 8;
+  const radius = size / 2 - strokeWidth / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.max(0, Math.min(100, percent));
+  const offset = circumference * (1 - progress / 100);
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="-rotate-90 transform h-24 w-24 md:h-32 md:w-32 overflow-visible"
+    >
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke="oklch(0.2 0.01 270)"
+        strokeWidth={strokeWidth}
+        fill="none"
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke="oklch(0.78 0.2 155)"
+        strokeWidth={strokeWidth}
+        fill="none"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        className="drop-shadow-[0_0_4px_oklch(0.78_0.2_155/0.5)]"
+        style={{
+          transition: "stroke-dashoffset 0.8s cubic-bezier(.42,0,1,1)",
+        }}
+      />
+    </svg>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -97,28 +143,42 @@ export function DashboardView() {
   // ------------------------------------------------------------------
   // Memoised derivations — recalculate only when source data changes
   // ------------------------------------------------------------------
-  const statusCounts = {
-    received: tickets.filter((t) => t.status === "received").length,
-    inProgress: tickets.filter((t) => t.status === "in-progress").length,
-    ready: tickets.filter((t) => t.status === "ready").length,
-    delivered: tickets.filter((t) => t.status === "delivered").length,
-    slaViolation: tickets.filter((t) => t.slaViolation).length,
-  };
+  const statusCounts = useMemo(
+    () => ({
+      received: tickets.filter((t) => t.status === "received").length,
+      inProgress: tickets.filter((t) => t.status === "in-progress").length,
+      ready: tickets.filter((t) => t.status === "ready").length,
+      delivered: tickets.filter((t) => t.status === "delivered").length,
+      slaViolation: tickets.filter((t) => computeSlaViolation(t)).length,
+    }),
+    [tickets],
+  );
 
-  const weeklyData = getWeeklyData(tickets);
+  const weeklyData = useMemo(() => getWeeklyData(tickets), [tickets]);
 
-  const recentActivities = tickets.slice(0, 5).map((ticket, idx) => ({
-    id: idx + 1,
-    ticketId: ticket.id,
-    text: `Заявка ${ticket.id}: ${ticket.clientName}`,
-    time: "щойно",
-    type:
-      ticket.status === "ready"
-        ? "ready"
-        : ticket.status === "in-progress"
-          ? "progress"
-          : "new",
-  }));
+  const avgRepairDays = useMemo(
+    () => getGlobalAverageRepairTimeDays(tickets),
+    [tickets],
+  );
+
+  const slaPercent = useMemo(() => getSlaPercent(tickets), [tickets]);
+
+  const recentActivities = useMemo(
+    () =>
+      tickets.slice(0, 5).map((ticket, idx) => ({
+        id: idx + 1,
+        ticketId: ticket.id,
+        text: `Заявка ${ticket.id}: ${ticket.clientName}`,
+        time: "щойно",
+        type:
+          ticket.status === "ready"
+            ? "ready"
+            : ticket.status === "in-progress"
+              ? "progress"
+              : "new",
+      })),
+    [tickets],
+  );
 
   const { pieData, totalStatuses } = useMemo(() => {
     const total =
@@ -422,7 +482,7 @@ export function DashboardView() {
                   Сер. час ремонту
                 </span>
                 <span className="text-xl md:text-2xl font-bold text-foreground">
-                  {getAverageRepairTimeForAllMasters(tickets)}
+                  {avgRepairDays ?? "—"}
                 </span>
               </div>
             </div>
@@ -443,57 +503,15 @@ export function DashboardView() {
             </div>
             <div className="flex-1 flex items-center justify-center py-4">
               <div className="relative">
-                {(() => {
-                  // Настройки круга
-                  const percent = getSlaPercent(tickets);
-                  const size = 128; // размер SVG
-                  const strokeWidth = 8;
-                  const radius = size / 2 - strokeWidth / 2;
-                  const circumference = 2 * Math.PI * radius;
-                  const progress = Math.max(0, Math.min(100, percent));
-                  const offset = circumference * (1 - progress / 100);
-                  const svgSize = `h-24 w-24 md:h-32 md:w-32 overflow-visible`;
-
-                  return (
-                    <svg
-                      width={size}
-                      height={size}
-                      viewBox={`0 0 ${size} ${size}`}
-                      className={`-rotate-90 transform ${svgSize}`}
-                    >
-                      <circle
-                        cx={size / 2}
-                        cy={size / 2}
-                        r={radius}
-                        stroke="oklch(0.2 0.01 270)"
-                        strokeWidth={strokeWidth}
-                        fill="none"
-                      />
-                      <circle
-                        cx={size / 2}
-                        cy={size / 2}
-                        r={radius}
-                        stroke="oklch(0.78 0.2 155)"
-                        strokeWidth={strokeWidth}
-                        fill="none"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={offset}
-                        strokeLinecap="round"
-                        className="drop-shadow-[0_0_4px_oklch(0.78_0.2_155/0.5)]"
-                        style={{
-                          transition:
-                            "stroke-dashoffset 0.8s cubic-bezier(.42,0,1,1)",
-                        }}
-                      />
-                    </svg>
-                  );
-                })()}
+                {slaPercent !== null && (
+                  <SlaRing percent={slaPercent} />
+                )}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-2xl md:text-3xl font-bold text-foreground">
-                    {getSlaPercent(tickets)}%
+                    {slaPercent !== null ? `${slaPercent}%` : "—"}
                   </span>
                   <span className="text-[10px] md:text-xs text-muted-foreground">
-                    вчасно
+                    {slaPercent !== null ? "вчасно" : "немає даних"}
                   </span>
                 </div>
               </div>

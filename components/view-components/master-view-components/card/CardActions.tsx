@@ -1,5 +1,6 @@
 import { MessageSquare } from "lucide-react";
-import { TicketStatus } from "@/lib/types";
+import { TicketStatus, statusLabels } from "@/lib/types";
+import { getAllowedTargetStatuses } from "@/lib/ticket-status";
 import {
   Select,
   SelectContent,
@@ -35,8 +36,11 @@ export function CardActions({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="in-progress">В роботі</SelectItem>
-            <SelectItem value="ready">Готово</SelectItem>
+            {getAllowedTargetStatuses(status, "master").map((s) => (
+              <SelectItem key={s} value={s}>
+                {statusLabels[s]}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

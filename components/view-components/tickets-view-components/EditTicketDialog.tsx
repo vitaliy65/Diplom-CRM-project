@@ -3,8 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { AnimatePresence, motion } from "framer-motion";
-import DialogInput from "@/components/DialogInput";
 import { updateTicket } from "@/store/slices/tickets-slice";
+import { editTicketPanelSchema } from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
+import { enrichUsedParts } from "@/lib/storage-stock";
+import { selectStorage } from "@/store/slices/storage-slice";
+import { getStatusOptionsForSelect } from "@/lib/ticket-status";
+import { computeSlaViolation } from "@/lib/sla";
+import { selectCurrentUser } from "@/store/slices/auth-slice";
+import { statusLabels } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { Ticket, UsedPartsTicket } from "@/lib/types";
@@ -47,6 +54,8 @@ export function EditTicketDialog({
 }: EditTicketDialogProps) {
   const dispatch = useAppDispatch();
   const masters = useAppSelector(selectMasters);
+  const currentUser = useAppSelector(selectCurrentUser);
+  const storage = useAppSelector(selectStorage);
 
   const [formData, setFormData] =
     useState<Omit<Ticket, "id">>(emptyTicketFields);
@@ -117,13 +126,13 @@ export function EditTicketDialog({
         ...prev,
         usedParts: exists
           ? prev.usedParts.filter((p) => p.id !== id)
-          : [...prev.usedParts, { id, name, quantity: "1" }],
+          : [...prev.usedParts, { id, name, quantity: 1 }],
       };
     });
   }, []);
 
   const handlePartQuantityChange = useCallback(
-    (id: string, quantity: string) => {
+    (id: string, quantity: number) => {
       setFormData((prev) => ({
         ...prev,
         usedParts: prev.usedParts.map((p) =>
@@ -160,8 +169,22 @@ export function EditTicketDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTicket) return;
+    const panelPayload = {
+      status: formData.status,
+      masterId: formData.masterId || null,
+      masterName: formData.masterName,
+      services: formData.services,
+      usedParts: enrichUsedParts(formData.usedParts, storage),
+    };
+
+    const parsed = parseWithSchema(editTicketPanelSchema, panelPayload);
+    if (!parsed.success) {
+      toast.error(parsed.message);
+      return;
+    }
+
     const result = await dispatch(
-      updateTicket({ id: editingTicket.id, data: formData }),
+      updateTicket({ id: editingTicket.id, data: parsed.data }),
     );
     if (updateTicket.fulfilled.match(result)) {
       toast.success("Тікет оновлено");
@@ -239,10 +262,14 @@ export function EditTicketDialog({
                         value={formData.status}
                         onChange={handleChange}
                       >
-                        <option value="received">Прийнято</option>
-                        <option value="in-progress">В роботі</option>
-                        <option value="ready">Готово</option>
-                        <option value="delivered">Видано</option>
+                        {getStatusOptionsForSelect(
+                          editingTicket.status,
+                          currentUser?.role,
+                        ).map((s) => (
+                          <option key={s} value={s}>
+                            {statusLabels[s]}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -270,22 +297,26 @@ export function EditTicketDialog({
                       </select>
                     </div>
 
-                    {/* SLA */}
-                    <div className="flex items-center gap-2">
-                      <input
-                        id="slaViolation"
-                        name="slaViolation"
-                        type="checkbox"
-                        checked={formData.slaViolation}
-                        onChange={handleChange}
-                        className="h-4 w-4 rounded border-border"
-                      />
-                      <label
-                        htmlFor="slaViolation"
-                        className="text-sm text-foreground"
+                    {/* SLA (обчислюється автоматично) */}
+                    <div className="rounded-md border border-border px-3 py-2 text-sm">
+                      <span className="text-muted-foreground">SLA: </span>
+                      <span
+                        className={
+                          computeSlaViolation({
+                            ...editingTicket,
+                            ...formData,
+                          })
+                            ? "text-red-500 font-medium"
+                            : "text-emerald-600 font-medium"
+                        }
                       >
-                        Порушення SLA
-                      </label>
+                        {computeSlaViolation({
+                          ...editingTicket,
+                          ...formData,
+                        })
+                          ? "Порушено"
+                          : "В нормі"}
+                      </span>
                     </div>
 
                     {/* ── Panel toggles ──────────────────────────────── */}

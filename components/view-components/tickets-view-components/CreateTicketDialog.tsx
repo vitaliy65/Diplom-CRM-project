@@ -19,7 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import { CheckTicketFields } from "@/error-handlers/ticketErrorHandler";
+import { createTicketSchema } from "@/lib/validations/schemas";
+import { parseWithSchema } from "@/lib/validations/parse";
 import { createTicket } from "@/store/slices/tickets-slice";
 import { toast } from "sonner";
 
@@ -93,7 +94,7 @@ export function CreateTicketDialog({
           ...prev,
           usedParts: [
             ...prev.usedParts,
-            { id: part.id, name: part.name, quantity: "1" },
+            { id: part.id, name: part.name, quantity: 1 },
           ],
         };
       } else if (!checked && index !== -1) {
@@ -115,24 +116,27 @@ export function CreateTicketDialog({
 
   // Update the quantity for a used part
   const handlePartQuantityChange = (partId: string, value: string) => {
+    let numericValue = parseInt(value.replace(/\D/g, ""), 10);
+    const part = spareParts.find((p) => p.id === partId);
+    if (Number.isNaN(numericValue) || numericValue < 1) numericValue = 1;
+    if (part && numericValue > part.count) numericValue = part.count;
     setFormData((prev) => ({
       ...prev,
-      usedParts: prev.usedParts.map((part) =>
-        part.id === partId ? { ...part, quantity: value } : part,
+      usedParts: prev.usedParts.map((p) =>
+        p.id === partId ? { ...p, quantity: numericValue } : p,
       ),
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const missingFields = CheckTicketFields(formData);
-
-    if (missingFields.length > 0) {
-      toast.error(`Будь ласка, заповніть усі обов'язкові поля!`);
+    const parsed = parseWithSchema(createTicketSchema, formData);
+    if (!parsed.success) {
+      toast.error(parsed.message);
       return;
     }
 
-    const result = await dispatch(createTicket(formData));
+    const result = await dispatch(createTicket(parsed.data));
     if (createTicket.fulfilled.match(result)) {
       toast.success("Заявку збережено");
       setIsCreateDialogOpen(false);

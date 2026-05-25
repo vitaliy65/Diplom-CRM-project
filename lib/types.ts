@@ -30,7 +30,7 @@ export interface Comment {
 export interface UsedPartsTicket {
   id: string;
   name: string;
-  quantity: string;
+  quantity: number;
 }
 
 export interface Client {
@@ -70,7 +70,7 @@ export interface StatusLog {
 export interface SpareParts {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   count: number;
   priceForOne: number;
 }

@@ -8,6 +8,7 @@ import { selectTickets } from "@/store/slices/tickets-slice";
 import { selectCurrentUser } from "@/store/slices/auth-slice";
 import { SwipeableTicketCard } from "@/components/view-components/master-view-components/SwipeableTicketCard";
 import ViewContainer from "@/components/static/ViewContainer";
+import { computeSlaViolation } from "@/lib/sla";
 
 export function MasterView() {
   const currentUser = useAppSelector(selectCurrentUser);
@@ -23,7 +24,9 @@ export function MasterView() {
     (t) => t.status === "in-progress",
   ).length;
   const ready = assignedTickets.filter((t) => t.status === "ready").length;
-  const slaViolations = assignedTickets.filter((t) => t.slaViolation).length;
+  const slaViolations = assignedTickets.filter((t) =>
+    computeSlaViolation(t),
+  ).length;
 
   return (
     <ViewContainer title="Робоче місце" description="Ваші призначені заявки">
