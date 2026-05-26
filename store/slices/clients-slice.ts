@@ -158,10 +158,17 @@ const clientsSlice = createSlice({
       state.error = null;
     },
     // New reducers for filter functionality
-    setFilteredClients: (state, action: { payload: Client[] }) => {
-      state.filteredItems = action.payload;
-      state.filterActive = true;
-      state.currentPage = 1;
+    setFilteredClients: (
+      state,
+      action: { payload: { items: Client[]; filterActive: boolean } },
+    ) => {
+      const { items, filterActive } = action.payload;
+      const filterJustActivated = filterActive && !state.filterActive;
+      state.filteredItems = items;
+      state.filterActive = filterActive;
+      if (filterJustActivated) {
+        state.currentPage = 1;
+      }
     },
     clearFilteredClients: (state) => {
       state.filteredItems = [];
@@ -218,18 +225,21 @@ export const selectClientsLoading = (state: RootState) => state.clients.loading;
 export const selectClientsSaving = (state: RootState) => state.clients.saving;
 export const selectClientsError = (state: RootState) => state.clients.error;
 
+function getDisplayList<T>(items: T[], filteredItems: T[]): T[] {
+  return filteredItems.length > 0 ? filteredItems : items;
+}
+
 // Пагинированный список клиентов для текущей страницы с учетом фильтрации
 export const selectPaginatedClients = (state: RootState) => {
-  const { items, filteredItems, filterActive, currentPage, rowsPerPage } =
-    state.clients;
-  const data = filterActive ? filteredItems : items;
+  const { items, filteredItems, currentPage, rowsPerPage } = state.clients;
+  const data = getDisplayList(items, filteredItems);
   const startIdx = (currentPage - 1) * rowsPerPage;
   const endIdx = startIdx + rowsPerPage;
   return data.slice(startIdx, endIdx);
 };
 export const selectClientsTotalRows = (state: RootState) => {
-  const { items, filteredItems, filterActive } = state.clients;
-  return filterActive ? filteredItems.length : items.length;
+  const { items, filteredItems } = state.clients;
+  return getDisplayList(items, filteredItems).length;
 };
 export const selectClientsCurrentPage = (state: RootState) =>
   state.clients.currentPage;

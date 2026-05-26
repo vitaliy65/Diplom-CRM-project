@@ -1,4 +1,11 @@
-import { ReactNode, useEffect, useCallback, useMemo, useState } from "react";
+import {
+  ReactNode,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import ExportButton from "./ExportButton";
 import SearchBox from "@/components/static/SearchBox";
 import DividerVertical from "@/components/static/DividerVertical";
@@ -12,7 +19,7 @@ interface TopViewButtonsI<T> {
   ChildrenCreateDialog: ReactNode;
   data: T[];
   filterConfig: EntityFilterSortConfig<T>;
-  onSort: (result: T[]) => void;
+  onSort: (result: T[], filterActive: boolean) => void;
 }
 
 export default function TopViewButtons<T>({
@@ -25,8 +32,15 @@ export default function TopViewButtons<T>({
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { result, state, setFilter, setSort, clearSort, clearFilters } =
-    useFilterSort<T>(data, filterConfig);
+  const {
+    result,
+    state,
+    setFilter,
+    setSort,
+    clearSort,
+    clearFilters,
+    activeFilterCount,
+  } = useFilterSort<T>(data, filterConfig);
 
   const searchableFields = useMemo(
     () =>
@@ -65,9 +79,15 @@ export default function TopViewButtons<T>({
     );
   }, [result, searchQuery, searchableFields]);
 
+  const onSortRef = useRef(onSort);
+  onSortRef.current = onSort;
+
+  const hasUserFilter =
+    activeFilterCount > 0 || searchQuery.trim().length > 0;
+
   useEffect(() => {
-    onSort(displayResult);
-  }, [displayResult, onSort]);
+    onSortRef.current(displayResult, hasUserFilter);
+  }, [displayResult, hasUserFilter]);
 
   const handleSearch = useCallback(
     (query: string) => {

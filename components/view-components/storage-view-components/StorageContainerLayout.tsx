@@ -88,7 +88,9 @@ export default function StorageContainerLayout() {
         ChildrenCreateDialog={<CreateStorageDialog />}
         data={storage}
         filterConfig={sparePartsConfig}
-        onSort={(result) => dispatch(setFilteredStorage(result))}
+        onSort={(result, filterActive) =>
+          dispatch(setFilteredStorage({ items: result, filterActive }))
+        }
       />
       <TableViewBox
         headers={rawHeaders}

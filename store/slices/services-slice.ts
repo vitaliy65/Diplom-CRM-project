@@ -144,10 +144,17 @@ const servicesSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
-    setFilteredItems: (state, action: { payload: Service[] }) => {
-      state.filteredItems = action.payload;
-      state.filterActive = true;
-      state.currentPage = 1;
+    setFilteredItems: (
+      state,
+      action: { payload: { items: Service[]; filterActive: boolean } },
+    ) => {
+      const { items, filterActive } = action.payload;
+      const filterJustActivated = filterActive && !state.filterActive;
+      state.filteredItems = items;
+      state.filterActive = filterActive;
+      if (filterJustActivated) {
+        state.currentPage = 1;
+      }
     },
     clearFilteredItems: (state) => {
       state.filteredItems = [];
@@ -212,17 +219,20 @@ export const selectServicesLoading = (state: RootState) =>
 export const selectServicesSaving = (state: RootState) => state.services.saving;
 export const selectServicesError = (state: RootState) => state.services.error;
 
+function getDisplayList<T>(items: T[], filteredItems: T[]): T[] {
+  return filteredItems.length > 0 ? filteredItems : items;
+}
+
 export const selectPaginatedServices = (state: RootState) => {
-  const { items, filteredItems, filterActive, currentPage, rowsPerPage } =
-    state.services;
-  const data = filterActive ? filteredItems : items;
+  const { items, filteredItems, currentPage, rowsPerPage } = state.services;
+  const data = getDisplayList(items, filteredItems);
   const startIdx = (currentPage - 1) * rowsPerPage;
   const endIdx = startIdx + rowsPerPage;
   return data.slice(startIdx, endIdx);
 };
 export const selectServicesTotalRows = (state: RootState) => {
-  const { items, filteredItems, filterActive } = state.services;
-  return filterActive ? filteredItems.length : items.length;
+  const { items, filteredItems } = state.services;
+  return getDisplayList(items, filteredItems).length;
 };
 export const selectServicesCurrentPage = (state: RootState) =>
   state.services.currentPage;

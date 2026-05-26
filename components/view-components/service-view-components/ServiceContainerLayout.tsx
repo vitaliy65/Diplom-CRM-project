@@ -72,7 +72,9 @@ export default function ServiceContainerLayout() {
         ChildrenCreateDialog={<CreateServiceDialog />}
         data={services}
         filterConfig={serviceConfig}
-        onSort={(result) => dispatch(setFilteredItems(result))}
+        onSort={(result, filterActive) =>
+          dispatch(setFilteredItems({ items: result, filterActive }))
+        }
       />
       <TableViewBox
         headers={headers}

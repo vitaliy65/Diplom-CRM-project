@@ -72,7 +72,9 @@ export default function ClientsContainerLayout() {
         ChildrenCreateDialog={<CreateClientDialog />}
         data={clients}
         filterConfig={clientConfig}
-        onSort={(result) => dispatch(setFilteredClients(result))}
+        onSort={(result, filterActive) =>
+          dispatch(setFilteredClients({ items: result, filterActive }))
+        }
       />
       <TableViewBox
         headers={headers}

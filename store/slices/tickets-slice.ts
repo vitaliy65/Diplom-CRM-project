@@ -39,6 +39,10 @@ type TicketsState = {
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
+function getDisplayList<T>(items: T[], filteredItems: T[]): T[] {
+  return filteredItems.length > 0 ? filteredItems : items;
+}
+
 const initialState: TicketsState = {
   items: [],
   filteredItems: [],
@@ -380,10 +384,17 @@ const ticketsSlice = createSlice({
       state.rowsPerPage = action.payload;
       state.currentPage = 1;
     },
-    setFilteredItems: (state, action: { payload: Ticket[] }) => {
-      state.filteredItems = action.payload;
-      state.filterActive = true;
-      state.currentPage = 1;
+    setFilteredItems: (
+      state,
+      action: { payload: { items: Ticket[]; filterActive: boolean } },
+    ) => {
+      const { items, filterActive } = action.payload;
+      const filterJustActivated = filterActive && !state.filterActive;
+      state.filteredItems = items;
+      state.filterActive = filterActive;
+      if (filterJustActivated) {
+        state.currentPage = 1;
+      }
     },
     clearFilteredItems: (state) => {
       state.filteredItems = [];
@@ -440,17 +451,16 @@ export const selectTicketsSaving = (state: RootState) => state.tickets.saving;
 export const selectTicketsError = (state: RootState) => state.tickets.error;
 
 export const selectPaginatedTickets = (state: RootState) => {
-  const { items, filteredItems, filterActive, currentPage, rowsPerPage } =
-    state.tickets;
-  const data = filterActive ? filteredItems : items;
+  const { items, filteredItems, currentPage, rowsPerPage } = state.tickets;
+  const data = getDisplayList(items, filteredItems);
   const startIdx = (currentPage - 1) * rowsPerPage;
   const endIdx = startIdx + rowsPerPage;
   return data.slice(startIdx, endIdx);
 };
 
 export const selectTicketsTotalRows = (state: RootState) => {
-  const { items, filteredItems, filterActive } = state.tickets;
-  return filterActive ? filteredItems.length : items.length;
+  const { items, filteredItems } = state.tickets;
+  return getDisplayList(items, filteredItems).length;
 };
 
 export const selectTicketsCurrentPage = (state: RootState) =>

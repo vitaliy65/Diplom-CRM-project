@@ -188,7 +188,9 @@ export default function TicketContainerLayout() {
         ChildrenCreateDialog={<CreateTicketDialog clients={clients} />}
         data={tickets}
         filterConfig={ticketConfig}
-        onSort={(result) => dispatch(setFilteredItems(result))}
+        onSort={(result, filterActive) =>
+          dispatch(setFilteredItems({ items: result, filterActive }))
+        }
       />
       <TableViewBox
         headers={headers}
