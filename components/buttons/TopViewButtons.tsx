@@ -13,13 +13,16 @@ import { EntityFilterSortConfig, useFilterSort } from "@/filters";
 import { FilterPanel } from "@/components/panels/Filterpanel";
 import { SortPanel } from "@/components/panels/Sortpanel";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SoapDispenserDroplet } from "lucide-react";
+import { RootState } from "@/store";
+import { ExportCsvOptions } from "@/lib/csv/exportCsv";
 
 interface TopViewButtonsI<T> {
   ChildrenCreateDialog: ReactNode;
   data: T[];
   filterConfig: EntityFilterSortConfig<T>;
   onSort: (result: T[], filterActive: boolean) => void;
+  exportSelector: (state: RootState) => T extends object[] ? T[] : object[];
+  exportOptions: ExportCsvOptions;
 }
 
 export default function TopViewButtons<T>({
@@ -27,6 +30,8 @@ export default function TopViewButtons<T>({
   data,
   filterConfig,
   onSort,
+  exportSelector,
+  exportOptions,
 }: TopViewButtonsI<T>) {
   const isMobile = useIsMobile();
 
@@ -82,8 +87,7 @@ export default function TopViewButtons<T>({
   const onSortRef = useRef(onSort);
   onSortRef.current = onSort;
 
-  const hasUserFilter =
-    activeFilterCount > 0 || searchQuery.trim().length > 0;
+  const hasUserFilter = activeFilterCount > 0 || searchQuery.trim().length > 0;
 
   useEffect(() => {
     onSortRef.current(displayResult, hasUserFilter);
@@ -120,7 +124,7 @@ export default function TopViewButtons<T>({
             />
           </div>
           <div className="flex w-fit h-full gap-4 max-md:gap-2">
-            <ExportButton />
+            <ExportButton selector={exportSelector} options={exportOptions} />
             {ChildrenCreateDialog}
           </div>
         </div>

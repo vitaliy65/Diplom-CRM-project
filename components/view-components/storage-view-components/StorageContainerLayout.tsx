@@ -20,6 +20,7 @@ import { sparePartsConfig } from "@/filters/configs/spare-parts";
 import { Skeleton } from "@/components/ui/skeleton";
 import TableViewBox, { TableRow } from "@/components/static/TableViewBox";
 import { EditStorageDialog } from "./EditStorageDialog";
+import { storageExportConfig } from "@/lib/csv/Exportconfigs";
 
 // Определяем порядок отображения столбцов склада
 const STORAGE_COLUMNS: Array<keyof SpareParts> = [
@@ -91,6 +92,8 @@ export default function StorageContainerLayout() {
         onSort={(result, filterActive) =>
           dispatch(setFilteredStorage({ items: result, filterActive }))
         }
+        exportSelector={storageExportConfig.selector}
+        exportOptions={storageExportConfig.options}
       />
       <TableViewBox
         headers={rawHeaders}

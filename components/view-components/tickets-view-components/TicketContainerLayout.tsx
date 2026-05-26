@@ -25,6 +25,7 @@ import { ticketConfig } from "@/filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditTicketDialog } from "./EditTicketDialog";
 import { useState } from "react";
+import { ticketsExportConfig } from "@/lib/csv/Exportconfigs";
 
 // Статичный порядок отображения полей (ключей тикета) в таблице
 const TICKET_COLUMNS: Array<keyof Ticket> = [
@@ -191,6 +192,8 @@ export default function TicketContainerLayout() {
         onSort={(result, filterActive) =>
           dispatch(setFilteredItems({ items: result, filterActive }))
         }
+        exportSelector={ticketsExportConfig.selector}
+        exportOptions={ticketsExportConfig.options}
       />
       <TableViewBox
         headers={headers}

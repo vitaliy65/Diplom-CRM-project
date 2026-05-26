@@ -19,6 +19,7 @@ import { CreateServiceDialog } from "./CreateServiceDialog";
 import { serviceConfig } from "@/filters";
 import { EditServiceDialog } from "./EditServiceDialog";
 import { useState } from "react";
+import { servicesExportConfig } from "@/lib/csv/Exportconfigs";
 
 // порядок отображения полей таблицы сервисов
 const SERVICE_COLUMNS: Array<keyof Service> = [
@@ -75,6 +76,8 @@ export default function ServiceContainerLayout() {
         onSort={(result, filterActive) =>
           dispatch(setFilteredItems({ items: result, filterActive }))
         }
+        exportSelector={servicesExportConfig.selector}
+        exportOptions={servicesExportConfig.options}
       />
       <TableViewBox
         headers={headers}

@@ -19,6 +19,7 @@ import { CreateClientDialog } from "./CreateClientDialog";
 import { clientConfig } from "@/filters";
 import { EditClientDialog } from "./EditClientDialog";
 import { useState } from "react";
+import { clientsExportConfig } from "@/lib/csv/Exportconfigs";
 
 // порядок отображения полей таблицы клиентов
 const CLIENT_COLUMNS: Array<keyof Client> = [
@@ -75,6 +76,8 @@ export default function ClientsContainerLayout() {
         onSort={(result, filterActive) =>
           dispatch(setFilteredClients({ items: result, filterActive }))
         }
+        exportSelector={clientsExportConfig.selector}
+        exportOptions={clientsExportConfig.options}
       />
       <TableViewBox
         headers={headers}
