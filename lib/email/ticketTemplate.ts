@@ -81,7 +81,6 @@ export function renderTicketEmail(ticket: Ticket): string {
                 ${row("Майстер", ticket.masterName ?? "Не призначено")}
                 ${row("Дата прийому", formatDate(ticket.createdAt))}
                 ${ticket.readyAt ? row("Дата готовності", formatDate(ticket.readyAt)) : ""}
-                ${ticket.totalCost ? row("Вартість", `${ticket.totalCost} грн`) : ""}
               </table>
 
               ${

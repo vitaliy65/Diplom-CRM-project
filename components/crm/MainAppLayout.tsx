@@ -1,5 +1,6 @@
 "use client";
 import { ReactNode, useState } from "react";
+import { useRouter } from "next/navigation";
 import { FloatingSidebar } from "./floating-sidebar";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -17,11 +18,17 @@ import { selectActiveView, setActiveView } from "@/store/slices/view-slice";
 
 export default function MainAppLayout({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const user = useAppSelector(selectCurrentUser);
   const initialized = useAppSelector(selectAuthInitialized);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [commandOpen, setCommandOpen] = useState(false);
   const activeView = useAppSelector(selectActiveView);
+
+  const handleLogout = () => {
+    router.push("/");
+    dispatch(logout());
+  };
 
   if (!initialized) {
     return (
@@ -49,7 +56,7 @@ export default function MainAppLayout({ children }: { children: ReactNode }) {
 
       <FloatingSidebar
         userRole={user.role}
-        onLogout={() => dispatch(logout())}
+        onLogout={handleLogout}
         onChangeView={(view) => dispatch(setActiveView(view))}
         activeView={activeView}
       />
