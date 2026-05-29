@@ -18,7 +18,7 @@ type EditClientDialogProps = {
   saving: boolean;
 };
 
-const emptyClientFields: Omit<Client, "id" | "ticketCount"> = {
+const emptyClientFields: Omit<Client, "id"> = {
   name: "",
   phone: "",
   email: "",
@@ -31,7 +31,7 @@ export function EditClientDialog({
 }: EditClientDialogProps) {
   const dispatch = useAppDispatch();
   const [formData, setFormData] =
-    useState<Omit<Client, "id" | "ticketCount">>(emptyClientFields);
+    useState<Omit<Client, "id">>(emptyClientFields);
 
   // Sync form with editingClient
   useEffect(() => {

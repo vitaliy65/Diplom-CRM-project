@@ -18,11 +18,13 @@ export function normalizeTicketFromFirestore(
   return {
     id,
     clientId: raw.clientId ?? "",
+    clientEmail: raw.clientEmail ?? "",
     clientName: raw.clientName ?? "",
     clientPhone: raw.clientPhone ?? "",
     device: raw.device ?? "",
     problem: raw.problem ?? "",
     status: raw.status ?? "received",
+    isEmailDelivered: raw.isEmailDelivered ?? false,
     masterId: raw.masterId ?? null,
     masterName: raw.masterName ?? null,
     createdAt: raw.createdAt ?? "",
@@ -88,21 +90,4 @@ export async function syncTicketsForMaster(
   const batch = writeBatch(db);
   snapshot.docs.forEach((d) => batch.update(d.ref, { masterName }));
   await batch.commit();
-}
-
-export function countTicketsForClient(
-  tickets: Ticket[],
-  clientId: string,
-): number {
-  return tickets.filter((t) => t.clientId === clientId).length;
-}
-
-export async function setClientTicketCount(
-  clientId: string,
-  count: number,
-): Promise<void> {
-  if (!db) return;
-  await updateDoc(doc(collection(db, "clients"), clientId), {
-    ticketCount: Math.max(0, count),
-  });
 }

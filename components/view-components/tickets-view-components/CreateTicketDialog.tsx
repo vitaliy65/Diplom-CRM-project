@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { Dialog, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import {
   Select,
@@ -9,141 +8,34 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import * as React from "react";
-import { SpareParts, UsedPartsTicket } from "@/lib/types";
+import { Client, SpareParts } from "@/lib/types";
 import MultipleSelector from "@/components/ui/multi-select";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import ModalDialogConateiner from "@/components/ModalDialogConateiner";
 import DialogInput from "@/components/DialogInput";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import { createTicketSchema } from "@/lib/validations/schemas";
-import { parseWithSchema } from "@/lib/validations/parse";
-import { createTicket } from "@/store/slices/tickets-slice";
-import { toast } from "sonner";
+import { useCreateTicketDialogHook } from "@/hooks/useCreateTicketDialogHook";
 
-export function CreateTicketDialog({
-  clients,
-}: {
-  clients: { id: string; name: string; phone: string }[];
-}) {
-  const services = useAppSelector((s) => s.services.items);
-  // Use storage.items (see storage-slice and store/index)
-  const spareParts = useAppSelector((s) => s.storage.items);
-
-  // UsedParts = UserParts[], i.e., id + quantity
-  const [formData, setFormData] = useState<{
-    clientId: string;
-    clientName: string;
-    clientPhone: string;
-    device: string;
-    problem: string;
-    services: string[];
-    usedParts: UsedPartsTicket[];
-  }>({
-    clientId: "",
-    clientName: "",
-    clientPhone: "",
-    device: "",
-    problem: "",
-    services: [],
-    usedParts: [],
-  });
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const dispatch = useAppDispatch();
-  const [needParts, setNeedParts] = useState(false);
-
-  const serviceOptions = Array.from(services).map((service) => ({
-    value: service.id,
-    label: service.name,
-  }));
-
-  const selectedServiceOptions = serviceOptions.filter((opt) =>
-    formData.services.includes(opt.value),
-  );
-
-  const handleServicesChange = (
-    selected: { value: string; label: string }[],
-  ) => {
-    const selectedServiceIds = selected.map((opt) => opt.value);
-    setFormData((prev) => ({
-      ...prev,
-      services: selectedServiceIds,
-    }));
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-  };
-
-  // Add/remove a spare part from the usedParts array
-  const handleSparePartToggle = (part: SpareParts, checked: boolean) => {
-    setFormData((prev) => {
-      const index = prev.usedParts.findIndex((p) => p.id === part.id);
-      if (checked && index === -1) {
-        // Add new part with quantity "1" and correct name
-        return {
-          ...prev,
-          usedParts: [
-            ...prev.usedParts,
-            { id: part.id, name: part.name, quantity: 1 },
-          ],
-        };
-      } else if (!checked && index !== -1) {
-        // Remove this part
-        return {
-          ...prev,
-          usedParts: prev.usedParts.filter((p) => p.id !== part.id),
-        };
-      } else {
-        return prev;
-      }
-    });
-  };
-
-  // To determine if part is checked, look for it in usedParts
-  const isPartChecked = (part: SpareParts) => {
-    return formData.usedParts.some((p) => p.id === part.id);
-  };
-
-  // Update the quantity for a used part
-  const handlePartQuantityChange = (partId: string, value: string) => {
-    let numericValue = parseInt(value.replace(/\D/g, ""), 10);
-    const part = spareParts.find((p) => p.id === partId);
-    if (Number.isNaN(numericValue) || numericValue < 1) numericValue = 1;
-    if (part && numericValue > part.count) numericValue = part.count;
-    setFormData((prev) => ({
-      ...prev,
-      usedParts: prev.usedParts.map((p) =>
-        p.id === partId ? { ...p, quantity: numericValue } : p,
-      ),
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const parsed = parseWithSchema(createTicketSchema, formData);
-    if (!parsed.success) {
-      toast.error(parsed.message);
-      return;
-    }
-
-    const result = await dispatch(createTicket(parsed.data));
-    if (createTicket.fulfilled.match(result)) {
-      toast.success("Заявку збережено");
-      setIsCreateDialogOpen(false);
-    } else {
-      toast.error((result.payload as string) || "Помилка збереження заявки");
-    }
-  };
+export function CreateTicketDialog({ clients }: { clients: Client[] }) {
+  const {
+    formData,
+    setFormData,
+    isCreateDialogOpen,
+    setIsCreateDialogOpen,
+    needParts,
+    setNeedParts,
+    serviceOptions,
+    selectedServiceOptions,
+    handleServicesChange,
+    handleInputChange,
+    handleSparePartToggle,
+    isPartChecked,
+    handlePartQuantityChange,
+    handleSubmit,
+    spareParts,
+  } = useCreateTicketDialogHook(clients);
 
   return (
     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -173,6 +65,7 @@ export function CreateTicketDialog({
                     clientId,
                     clientName: client?.name ?? "",
                     clientPhone: client?.phone ?? "",
+                    clientEmail: client?.email ?? "",
                   }));
                 }}
               >
@@ -191,19 +84,29 @@ export function CreateTicketDialog({
             <DialogInput
               name="clientName"
               label="ПІБ клієнта"
-              value={formData.clientName}
+              value={formData.clientName ?? ""}
+              placeholder="Введіть ПІБ клієнта"
               onChange={handleInputChange}
             />
             <DialogInput
               name="clientPhone"
               label="Телефон"
-              value={formData.clientPhone}
+              value={formData.clientPhone ?? ""}
+              placeholder="Введіть телефон клієнта"
+              onChange={handleInputChange}
+            />
+            <DialogInput
+              name="clientEmail"
+              label="Email"
+              value={formData.clientEmail ?? ""}
+              placeholder="Введіть email клієнта"
               onChange={handleInputChange}
             />
             <DialogInput
               name="device"
               label="Пристрій"
-              value={formData.device}
+              value={formData.device ?? ""}
+              placeholder="Вкажіть пристрій"
               onChange={handleInputChange}
             />
 
@@ -272,7 +175,7 @@ export function CreateTicketDialog({
               {spareParts && spareParts.length > 0 ? (
                 spareParts.map((part: SpareParts) => {
                   const checked = isPartChecked(part);
-                  const usedPart = formData.usedParts.find(
+                  const usedPart = formData?.usedParts?.find(
                     (p) => p.id === part.id,
                   );
                   return (

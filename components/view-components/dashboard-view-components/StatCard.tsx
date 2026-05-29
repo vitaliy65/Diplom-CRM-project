@@ -18,7 +18,6 @@ export function StatCard({
   trend,
   dotClass,
 }: StatCardProps) {
-  console.log("[StatCard] I'm rendered");
   return (
     <motion.div
       variants={variantItem}

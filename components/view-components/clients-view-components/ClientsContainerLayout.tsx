@@ -22,12 +22,7 @@ import { useState } from "react";
 import { clientsExportConfig } from "@/lib/csv/Exportconfigs";
 
 // порядок отображения полей таблицы клиентов
-const CLIENT_COLUMNS: Array<keyof Client> = [
-  "name",
-  "email",
-  "phone",
-  "ticketCount",
-];
+const CLIENT_COLUMNS: Array<keyof Client> = ["name", "email", "phone"];
 
 // Тип для ассоциации строки с clientId
 type TableRowWithClientId = {

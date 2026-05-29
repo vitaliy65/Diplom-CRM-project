@@ -56,7 +56,6 @@ export const clientsExportConfig: SliceExportConfig<object> = {
       phone: "Телефон",
       email: "Email",
       address: "Адреса",
-      ticketCount: "Кількість заявок",
       createdAt: "Дата реєстрації",
     },
   },

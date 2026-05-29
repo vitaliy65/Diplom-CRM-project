@@ -335,11 +335,15 @@
 }
 
 .view-container {
-  @apply mx-2 sm:mx-4 md:mx-19 xl:mx-48 scroll-smooth h-full flex flex-1 flex-col rounded-2xl border border-border bg-card;
+  @apply mx-2 sm:mx-4 md:mx-19 xl:mx-48 2xl:mx-76 scroll-smooth h-full flex flex-1 flex-col rounded-2xl border border-border bg-card;
 }
 
 .view-box {
-  @apply md:p-8 p-2 h-full justify-center;
+  @apply md:p-8 p-2 h-full flex flex-col flex-wrap items-start justify-between;
+}
+
+.view-box-header {
+  @apply md:p-8 p-2 h-full flex flex-wrap items-center justify-between gap-4;
 }
 
 .container-layout {

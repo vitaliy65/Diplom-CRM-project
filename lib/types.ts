@@ -5,11 +5,13 @@ export type TicketStatus = "received" | "in-progress" | "ready" | "delivered";
 export interface Ticket {
   id: string;
   clientId: string;
+  clientEmail: string;
   clientName: string;
   clientPhone: string;
   device: string;
   problem: string;
   status: TicketStatus;
+  isEmailDelivered: boolean;
   masterId: string | null;
   masterName: string | null;
   createdAt: string;
@@ -38,7 +40,6 @@ export interface Client {
   name: string;
   phone: string;
   email: string;
-  ticketCount: number;
 }
 
 export interface UserProfile {

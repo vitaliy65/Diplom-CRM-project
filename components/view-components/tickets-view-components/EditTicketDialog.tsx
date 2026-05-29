@@ -14,7 +14,7 @@ import { selectCurrentUser } from "@/store/slices/auth-slice";
 import { statusLabels } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type { Ticket, UsedPartsTicket } from "@/lib/types";
+import type { Ticket } from "@/lib/types";
 import { selectMasters } from "@/store/slices/users-slice";
 import { WrenchIcon, PackageIcon, X } from "lucide-react";
 import { ServicesSelectorPanel } from "./ServicesSelectorPanel";
@@ -28,10 +28,11 @@ type EditTicketDialogProps = {
   saving: boolean;
 };
 
-const emptyTicketFields: Omit<Ticket, "id"> = {
+const emptyTicketFields: Omit<Ticket, "id" | "isEmailDelivered"> = {
   clientId: "",
   clientName: "",
   clientPhone: "",
+  clientEmail: "",
   device: "",
   problem: "",
   status: "received",
@@ -58,7 +59,7 @@ export function EditTicketDialog({
   const storage = useAppSelector(selectStorage);
 
   const [formData, setFormData] =
-    useState<Omit<Ticket, "id">>(emptyTicketFields);
+    useState<Omit<Ticket, "id" | "isEmailDelivered">>(emptyTicketFields);
   const [showServices, setShowServices] = useState(false);
   const [showParts, setShowParts] = useState(false);
 

@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Mail,
   Settings,
   ShieldUser,
   Ticket,
@@ -12,6 +13,7 @@ import {
 export type ViewType =
   | "dashboard"
   | "tickets"
+  | "send-email"
   | "clients"
   | "services"
   | "storage"
@@ -32,6 +34,13 @@ export const menuItems = [
     url: "/tickets",
     icon: Ticket,
     label: "Заявки",
+    roles: ["admin", "manager"],
+  },
+  {
+    id: "send-email",
+    url: "/send-email",
+    icon: Mail,
+    label: "пошта",
     roles: ["admin", "manager"],
   },
   {

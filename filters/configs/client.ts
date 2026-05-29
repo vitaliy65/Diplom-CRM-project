@@ -21,17 +21,10 @@ export const clientConfig: EntityFilterSortConfig<Client> = {
       type: "text",
       operator: "contains",
     },
-    {
-      field: "ticketCount",
-      label: "Кількість заявок",
-      type: "number-range",
-      operator: "between",
-    },
   ],
 
   sorts: [
     { field: "name", label: "Ім'я (А→Я)" },
-    { field: "ticketCount", label: "Кількість заявок" },
     { field: "email", label: "Email" },
   ],
 

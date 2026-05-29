@@ -58,3 +58,11 @@ export function toFullDateTime(date: Date | string | number): string {
 
   return `${day}.${month}.${year}, ${hours}:${minutes}:${seconds}`;
 }
+
+export function formatDate(iso?: string) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("uk-UA", {
+    day: "2-digit",
+    month: "short",
+  });
+}

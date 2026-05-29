@@ -6,6 +6,7 @@ interface DialogInputI {
   name: string;
   label: string;
   value: string | number;
+  placeholder?: string;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
@@ -20,7 +21,7 @@ export default function DialogInput(props: DialogInputI) {
       <Input
         id={props.name}
         name={props.name}
-        placeholder="Дисплей iPhone 12"
+        placeholder={props.placeholder}
         value={props.value}
         onChange={props.onChange}
         className="bg-secondary border-border focus:border-primary/50 inset-shadow-sm"

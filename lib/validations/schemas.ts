@@ -9,16 +9,19 @@ const usedPartSchema = z.object({
 
 export const createTicketSchema = z.object({
   clientId: z.string().min(1, "Оберіть клієнта"),
+  clientEmail: z.string().email("Некоректний email"),
   clientName: z.string().min(1, "ПІБ клієнта обов'язкове"),
   clientPhone: z.string().min(1, "Телефон обов'язковий"),
   device: z.string().min(1, "Пристрій обов'язковий"),
   problem: z.string().optional().default(""),
   services: z.array(z.string()).min(1, "Оберіть хоча б один сервіс"),
   usedParts: z.array(usedPartSchema).default([]),
+  isEmailDelivered: z.boolean().default(false),
 });
 
 export const updateTicketSchema = createTicketSchema.partial().extend({
   status: z.enum(["received", "in-progress", "ready", "delivered"]).optional(),
+  isEmailDelivered: z.boolean().optional(),
   masterId: z.string().nullable().optional(),
   masterName: z.string().nullable().optional(),
   services: z.array(z.string()).optional(),

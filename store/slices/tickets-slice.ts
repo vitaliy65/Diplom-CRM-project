@@ -15,15 +15,10 @@ import { canTransition, getStatusTransitionError } from "@/lib/ticket-status";
 import { commitStockDeltas } from "@/lib/ticket-firestore";
 import { enrichUsedParts } from "@/lib/storage-stock";
 import {
-  countTicketsForClient,
   normalizeTicketFromFirestore,
   resolveTicketSnapshots,
-  setClientTicketCount,
 } from "@/lib/ticket-sync";
-import {
-  createTicketSchema,
-  updateTicketSchema,
-} from "@/lib/validations/schemas";
+import { updateTicketSchema } from "@/lib/validations/schemas";
 import { parseWithSchema } from "@/lib/validations/parse";
 
 type TicketsState = {
@@ -108,34 +103,9 @@ export const createTicket = createAsyncThunk(
       return rejectWithValue("Недостатньо прав для створення заявки.");
     }
 
-    const ctx = getTicketContext(getState() as RootState);
-    const payloadWithParts = {
-      ...payload,
-      usedParts: enrichUsedParts(
-        payload.usedParts as Ticket["usedParts"],
-        ctx.storage,
-      ),
-    };
-    const parsed = parseWithSchema(createTicketSchema, payloadWithParts);
-    if (!parsed.success) {
-      return rejectWithValue(parsed.message);
-    }
-
-    const enriched = resolveTicketSnapshots(
-      parsed.data as Partial<Ticket>,
-      ctx.clients,
-      ctx.masters,
-    );
-    const usedParts = enrichUsedParts(enriched.usedParts, ctx.storage);
-
-    const stockError = await commitStockDeltas(ctx.storage, [], usedParts);
-    if (stockError) {
-      return rejectWithValue(stockError);
-    }
-
     try {
       await addDoc(collection(db, "tickets"), {
-        ...enriched,
+        ...payload,
         status: "received",
         masterId: null,
         masterName: null,
@@ -144,14 +114,7 @@ export const createTicket = createAsyncThunk(
         slaViolation: false,
         comments: [],
       });
-
-      const clientId = enriched.clientId as string;
-      if (clientId) {
-        const count = countTicketsForClient(ctx.tickets, clientId) + 1;
-        await setClientTicketCount(clientId, count);
-      }
     } catch {
-      await commitStockDeltas(ctx.storage, usedParts, []);
       return rejectWithValue("Не вдалося створити заявку.");
     }
   },
@@ -241,22 +204,6 @@ export const updateTicket = createAsyncThunk(
 
     try {
       await updateDoc(doc(db, "tickets", payload.id), updateData);
-
-      if (enriched.clientId && enriched.clientId !== existing.clientId) {
-        if (existing.clientId) {
-          const oldCount = countTicketsForClient(
-            ctx.tickets.filter((t) => t.id !== payload.id),
-            existing.clientId,
-          );
-          await setClientTicketCount(existing.clientId, oldCount);
-        }
-        const newCount =
-          countTicketsForClient(
-            ctx.tickets.filter((t) => t.id !== payload.id),
-            enriched.clientId,
-          ) + 1;
-        await setClientTicketCount(enriched.clientId, newCount);
-      }
     } catch {
       await commitStockDeltas(ctx.storage, newParts, oldParts);
       return rejectWithValue("Не вдалося оновити заявку.");
@@ -293,13 +240,6 @@ export const deleteTicket = createAsyncThunk(
 
     try {
       await deleteDoc(doc(db, "tickets", ticketId));
-      if (existing.clientId) {
-        const count = countTicketsForClient(
-          ctx.tickets.filter((t) => t.id !== ticketId),
-          existing.clientId,
-        );
-        await setClientTicketCount(existing.clientId, count);
-      }
     } catch {
       await commitStockDeltas(ctx.storage, [], existing.usedParts ?? []);
       return rejectWithValue("Не вдалося видалити заявку.");

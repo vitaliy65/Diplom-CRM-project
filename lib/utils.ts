@@ -1,9 +1,9 @@
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-import { Ticket } from './types';
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { Ticket } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 const daysOfWeek = [
@@ -21,7 +21,13 @@ export function getWeeklyData(tickets: Ticket[]) {
   const today = new Date();
   // Определить начало недели (понедельник)
   const weekDays: { [idx: number]: string } = {
-    1: "Пн", 2: "Вт", 3: "Ср", 4: "Чт", 5: "Пт", 6: "Сб", 0: "Нд"
+    1: "Пн",
+    2: "Вт",
+    3: "Ср",
+    4: "Чт",
+    5: "Пт",
+    6: "Сб",
+    0: "Нд",
   };
 
   // Получаем даты текущей недели с понедельника по воскресенье
@@ -40,21 +46,23 @@ export function getWeeklyData(tickets: Ticket[]) {
   const result = weekDates.map((date, idx) => ({
     day: daysOfWeek[idx].day,
     tickets: 0,
-    completed: 0
+    completed: 0,
   }));
 
   for (const ticket of tickets) {
     // Ожидается, что ticket.createdAt и ticket.readyAt - строки/даты
     const created = ticket.createdAt ? new Date(ticket.createdAt) : null;
-    const completed = (ticket.status === "ready" || ticket.status === "delivered")
-      ? (ticket.readyAt ? new Date(ticket.readyAt) : null) : null;
+    const completed =
+      ticket.status === "ready" || ticket.status === "delivered"
+        ? ticket.readyAt
+          ? new Date(ticket.readyAt)
+          : null
+        : null;
 
     // Найти, попадает ли created в этот день недели
     if (created) {
       created.setHours(0, 0, 0, 0);
-      const idx = weekDates.findIndex(
-        (d) => d.getTime() === created.getTime()
-      );
+      const idx = weekDates.findIndex((d) => d.getTime() === created.getTime());
       if (idx !== -1) {
         result[idx].tickets += 1;
       }
@@ -64,7 +72,7 @@ export function getWeeklyData(tickets: Ticket[]) {
     if (completed) {
       completed.setHours(0, 0, 0, 0);
       const idx = weekDates.findIndex(
-        (d) => d.getTime() === completed.getTime()
+        (d) => d.getTime() === completed.getTime(),
       );
       if (idx !== -1) {
         result[idx].completed += 1;
@@ -72,4 +80,12 @@ export function getWeeklyData(tickets: Ticket[]) {
     }
   }
   return result;
+}
+
+export function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2);
 }

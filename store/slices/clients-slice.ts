@@ -70,10 +70,7 @@ export const subscribeClients = createAsyncThunk(
 
 export const createClient = createAsyncThunk(
   "clients/create",
-  async (
-    payload: Omit<Client, "id" | "ticketCount">,
-    { getState, rejectWithValue },
-  ) => {
+  async (payload: Omit<Client, "id">, { getState, rejectWithValue }) => {
     if (!db || !isFirebaseConfigured) {
       return rejectWithValue("Firebase не налаштований.");
     }
@@ -89,7 +86,6 @@ export const createClient = createAsyncThunk(
     try {
       await addDoc(collection(db, "clients"), {
         ...parsed.data,
-        ticketCount: 0,
         createdAt: serverTimestamp(),
       });
     } catch {
