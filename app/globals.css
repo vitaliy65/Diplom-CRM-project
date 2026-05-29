@@ -339,7 +339,7 @@
 }
 
 .view-box {
-  @apply md:p-8 p-2 h-full flex flex-col flex-wrap items-start justify-between;
+  @apply md:p-8 p-2 h-full flex flex-col flex-wrap items-center justify-between;
 }
 
 .view-box-header {
