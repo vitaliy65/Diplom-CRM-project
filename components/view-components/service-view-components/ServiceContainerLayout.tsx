@@ -10,7 +10,7 @@ import {
   setCurrentPage,
   setRowsPerPage,
   selectServices,
-  setFilteredItems,
+  setFilteredServices,
 } from "@/store/slices/services-slice";
 import TopViewButtons from "@/components/buttons/TopViewButtons";
 import ShowTablePage from "@/components/static/ShowTablePage";
@@ -18,8 +18,9 @@ import type { Service } from "@/lib/types";
 import { CreateServiceDialog } from "./CreateServiceDialog";
 import { serviceConfig } from "@/filters";
 import { EditServiceDialog } from "./EditServiceDialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { servicesExportConfig } from "@/lib/csv/Exportconfigs";
+import { useSearchParams } from "next/navigation";
 
 // порядок отображения полей таблицы сервисов
 const SERVICE_COLUMNS: Array<keyof Service> = [
@@ -45,6 +46,17 @@ export default function ServiceContainerLayout() {
   const rowsPerPage = useAppSelector(selectServicesRowsPerPage);
 
   const headers = SERVICE_COLUMNS as string[];
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const Id = searchParams?.get("id");
+    if (Id) {
+      const filtered = services.filter((c) => c.id === Id);
+      dispatch(setFilteredServices({ items: filtered, filterActive: true }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, services, searchParams]);
 
   // Associate each row with serviceId for edit support
   const data: TableRowWithServiceId[] = paginatedServices.map((svc) => {
@@ -74,7 +86,7 @@ export default function ServiceContainerLayout() {
         data={services}
         filterConfig={serviceConfig}
         onSort={(result, filterActive) =>
-          dispatch(setFilteredItems({ items: result, filterActive }))
+          dispatch(setFilteredServices({ items: result, filterActive }))
         }
         exportSelector={servicesExportConfig.selector}
         exportOptions={servicesExportConfig.options}

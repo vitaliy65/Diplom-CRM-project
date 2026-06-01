@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useAppSelector } from "@/store/hooks";
 import ViewContainer from "@/components/static/ViewContainer";
 import ClientsContainerLayout from "@/components/view-components/clients-view-components/ClientsContainerLayout";
 

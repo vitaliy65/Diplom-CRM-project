@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import TopViewButtons from "@/components/buttons/TopViewButtons";
 import {
@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import TableViewBox, { TableRow } from "@/components/static/TableViewBox";
 import { EditStorageDialog } from "./EditStorageDialog";
 import { storageExportConfig } from "@/lib/csv/Exportconfigs";
+import { useSearchParams } from "next/navigation";
 
 // Определяем порядок отображения столбцов склада
 const STORAGE_COLUMNS: Array<keyof SpareParts> = [
@@ -49,6 +50,17 @@ export default function StorageContainerLayout() {
   const rowsPerPage = useAppSelector(selectStorageRowsPerPage);
 
   const rawHeaders = filterTableColumns(STORAGE_COLUMNS as string[]);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const Id = searchParams?.get("id");
+    if (Id) {
+      const filtered = storage.filter((c) => c.id === Id);
+      dispatch(setFilteredStorage({ items: filtered, filterActive: true }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, storage, searchParams]);
 
   // Ассоциируем данные с id для поддержки редактирования
   const data: TableRowWithStorageId[] =

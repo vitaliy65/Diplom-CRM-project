@@ -244,7 +244,7 @@ export const {
   setCurrentPage,
   setRowsPerPage,
   setServices,
-  setFilteredItems,
+  setFilteredItems: setFilteredServices,
   clearFilteredItems,
 } = servicesSlice.actions;
 

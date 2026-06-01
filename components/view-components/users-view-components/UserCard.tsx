@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import { roleLabels, type UserProfile as User } from "@/lib/types";
 import { Mail } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/auth-slice";
 
 export const roleConfig = {
   admin: {
@@ -50,10 +52,14 @@ export function UserCard({
 }: {
   user: User;
   index: number;
-  onToggleStatus: () => void;
+  onToggleStatus: (() => Promise<void>) | undefined;
 }) {
   const config = roleConfig[user.role];
   const Icon = config.icon;
+  const currentUser = useAppSelector(selectCurrentUser);
+
+  // Only show action buttons if the card user is not the current user
+  const isCurrentUser = currentUser && currentUser.id === user.id;
 
   return (
     <motion.div
@@ -123,9 +129,55 @@ export function UserCard({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3">
+        {!isCurrentUser && (
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2">
+              <Switch checked={user.active} onCheckedChange={onToggleStatus} />
+              <span
+                className={cn(
+                  "text-sm",
+                  user.active ? "text-glow-green" : "text-muted-foreground",
+                )}
+              >
+                {user.active ? "Активний" : "Неактивний"}
+              </span>
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="">
+                <DropdownMenuItem>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Редагувати
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onToggleStatus}>
+                  {user.active ? (
+                    <>
+                      <ShieldX className="h-4 w-4 mr-2" />
+                      Деактивувати
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="h-4 w-4 mr-2" />
+                      Активувати
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-glow-red focus:text-glow-red">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Видалити
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+        {isCurrentUser && (
           <div className="hidden sm:flex items-center gap-2">
-            <Switch checked={user.active} onCheckedChange={onToggleStatus} />
             <span
               className={cn(
                 "text-sm",
@@ -135,39 +187,7 @@ export function UserCard({
               {user.active ? "Активний" : "Неактивний"}
             </span>
           </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="">
-              <DropdownMenuItem>
-                <Pencil className="h-4 w-4 mr-2" />
-                Редагувати
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onToggleStatus}>
-                {user.active ? (
-                  <>
-                    <ShieldX className="h-4 w-4 mr-2" />
-                    Деактивувати
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="h-4 w-4 mr-2" />
-                    Активувати
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-glow-red focus:text-glow-red">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Видалити
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        )}
       </div>
     </motion.div>
   );

@@ -18,8 +18,9 @@ import type { Client } from "@/lib/types";
 import { CreateClientDialog } from "./CreateClientDialog";
 import { clientConfig } from "@/filters";
 import { EditClientDialog } from "./EditClientDialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { clientsExportConfig } from "@/lib/csv/Exportconfigs";
+import { useSearchParams } from "next/navigation";
 
 // порядок отображения полей таблицы клиентов
 const CLIENT_COLUMNS: Array<keyof Client> = ["name", "email", "phone"];
@@ -40,6 +41,16 @@ export default function ClientsContainerLayout() {
   const rowsPerPage = useAppSelector(selectClientsRowsPerPage);
 
   const headers = CLIENT_COLUMNS as string[];
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const Id = searchParams?.get("id");
+    if (Id) {
+      const filtered = clients.filter((c) => c.id === Id);
+      dispatch(setFilteredClients({ items: filtered, filterActive: true }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, clients, searchParams]);
 
   // Associate each row with clientId for edit support
   const data: TableRowWithClientId[] = paginatedClients.map((client) => {

@@ -75,7 +75,7 @@ function RenderObjLabel({
   return (
     <div className="flex flex-wrap gap-1">
       {obj.map(({ labelText, id, viewType }, idx) => (
-        <span
+        <a
           key={id}
           className="table-link text-xs px-2 py-1 cursor-pointer"
           onClick={(e) => {
@@ -98,11 +98,12 @@ function RenderObjLabel({
                 dispatch(setSelectedPartId(id));
                 break;
             }
-            router.push(`./${viewType}`);
+            // Добавить id в query (вручную с строкой, чтобы соответствовать типу)
+            router.push(`./${viewType}?id=${encodeURIComponent(id)}`);
           }}
         >
           {labelText}
-        </span>
+        </a>
       ))}
     </div>
   );
