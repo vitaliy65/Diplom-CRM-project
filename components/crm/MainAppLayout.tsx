@@ -25,9 +25,9 @@ export default function MainAppLayout({ children }: { children: ReactNode }) {
   const [commandOpen, setCommandOpen] = useState(false);
   const activeView = useAppSelector(selectActiveView);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await dispatch(logout());
     router.push("/");
-    dispatch(logout());
   };
 
   if (!initialized) {

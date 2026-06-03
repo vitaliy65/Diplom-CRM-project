@@ -143,7 +143,7 @@ export default function BroadcastPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden w-full rounded-xl border border-border bg-background">
+          <div className="overflow-hidden w-full rounded-xl border border-border bg-background shadow-md">
             <AnimatePresence initial={false}>
               {filtered.map(({ ticket, status }, idx) => {
                 const isSelected = selected.has(ticket.id);

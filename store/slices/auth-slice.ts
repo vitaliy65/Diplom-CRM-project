@@ -10,7 +10,7 @@ import {
   fetchSignInMethodsForEmail,
   type User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db, isFirebaseConfigured } from "@/lib/firebase";
 import type { UserProfile } from "@/lib/types";
 import type { RootState } from "@/store";
@@ -20,6 +20,7 @@ type AuthState = {
   loading: boolean;
   error: string | null;
   initialized: boolean;
+  blocked: boolean;
 };
 
 const initialState: AuthState = {
@@ -27,6 +28,7 @@ const initialState: AuthState = {
   loading: false,
   error: null,
   initialized: false,
+  blocked: false,
 };
 
 let authUnsubscribe: (() => void) | null = null;
@@ -37,11 +39,11 @@ async function resolveUserProfile(firebaseUser: User): Promise<UserProfile> {
   }
   const userRef = doc(db, "users", firebaseUser.uid);
   const userDoc = await getDoc(userRef);
+  const data = userDoc.data();
   const fallbackName =
     firebaseUser.displayName ||
     firebaseUser.email?.split("@")[0] ||
     "Користувач";
-  const data = userDoc.data();
   return {
     id: firebaseUser.uid,
     name: data?.name || fallbackName,
@@ -67,6 +69,12 @@ export const subscribeAuth = createAsyncThunk(
         return;
       }
       const profile = await resolveUserProfile(firebaseUser);
+      if (!profile.active) {
+        // Сразу разлогинить и показать ошибку, если выключен
+        await signOut(auth);
+        dispatch(authSlice.actions.setBlocked("Ваш акаунт вимкнено."));
+        return;
+      }
       dispatch(authSlice.actions.setLoggedIn({ profile }));
     });
   },
@@ -87,9 +95,12 @@ export const loginWithEmail = createAsyncThunk(
         payload.password,
       );
       const profile = await resolveUserProfile(credential.user);
+      if (!profile.active) {
+        await signOut(auth);
+        return rejectWithValue("Ваш акаунт вимкнено.");
+      }
       return { profile };
     } catch (error: any) {
-      // Handle common Firebase errors for login
       let message = "Не вдалося увійти. Перевірте email та пароль.";
       if (
         error.code === "auth/wrong-password" ||
@@ -121,7 +132,6 @@ export const registerWithEmail = createAsyncThunk(
       );
     }
     try {
-      // Проверяем, существует ли email в базе Firebase Auth
       const methods = await fetchSignInMethodsForEmail(auth, payload.email);
       if (methods && methods.length > 0) {
         return rejectWithValue("Користувач з таким email вже існує.");
@@ -144,7 +154,6 @@ export const registerWithEmail = createAsyncThunk(
       return { profile };
     } catch (error: any) {
       let message = "Не вдалося створити акаунт. Перевірте введені дані.";
-      // Детализация некоторых ошибок из Firebase
       if (error.code === "auth/invalid-email") {
         message = "Невірний формат email.";
       } else if (error.code === "auth/email-already-in-use") {
@@ -157,19 +166,20 @@ export const registerWithEmail = createAsyncThunk(
   },
 );
 
-// Thunk для смены пароля текущим пользователем с более подробной обработкой ошибок
 export const changeOwnPassword = createAsyncThunk(
   "auth/changeOwnPassword",
-  async (payload: { newPassword: string }, { rejectWithValue }) => {
-    if (!auth || !auth.currentUser) {
-      return rejectWithValue("Ви не авторизовані.");
+  async (payload: { newPassword: string }, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    if (!auth || !auth.currentUser || state.auth.blocked) {
+      return rejectWithValue(
+        state.auth.blocked ? "Ваш акаунт вимкнено." : "Ви не авторизовані.",
+      );
     }
     try {
       await updatePassword(auth.currentUser, payload.newPassword);
       return { success: true };
     } catch (error: any) {
       let message = "Не вдалося змінити пароль.";
-      // Подробности ошибки Firebase
       if (error.code === "auth/weak-password") {
         message = "Пароль занадто простий.";
       } else if (error.code === "auth/requires-recent-login") {
@@ -180,21 +190,19 @@ export const changeOwnPassword = createAsyncThunk(
   },
 );
 
-// Thunk для смены email текущим пользователем с проверками и подробным выводом ошибок
 export const changeOwnEmail = createAsyncThunk(
   "auth/changeOwnEmail",
-  async (payload: { newEmail: string }, { rejectWithValue }) => {
-    if (!auth || !auth.currentUser) {
-      return rejectWithValue("Ви не авторизовані.");
+  async (payload: { newEmail: string }, { rejectWithValue, getState }) => {
+    const state = getState() as RootState;
+    if (!auth || !auth.currentUser || state.auth.blocked) {
+      return rejectWithValue(
+        state.auth.blocked ? "Ваш акаунт вимкнено." : "Ви не авторизовані.",
+      );
     }
     try {
-      // Проверяем, совпадает ли новый email с текущим
       if (payload.newEmail === auth.currentUser.email) {
         return rejectWithValue("Новий email співпадає з поточним.");
       }
-
-      // Firebase требование: email должен быть верифицирован перед сменой (реальных препятствий нет, но такие ошибки бывают)
-      // Проверяем, существует ли такой email уже в системе Firebase Auth
       let methods = [];
       try {
         methods = await fetchSignInMethodsForEmail(auth, payload.newEmail);
@@ -202,7 +210,6 @@ export const changeOwnEmail = createAsyncThunk(
         if (e.code === "auth/invalid-email") {
           return rejectWithValue("Невірний формат email.");
         }
-        // Возможные ограничения квоты или проблемы соединения (раскроем их)
         return rejectWithValue(
           "Помилка при перевірці email: " +
             (e.message || e.code || JSON.stringify(e)),
@@ -214,8 +221,6 @@ export const changeOwnEmail = createAsyncThunk(
 
       try {
         await updateEmail(auth.currentUser, payload.newEmail);
-
-        // Обновляем email также и в базе Firestore
         if (db && auth.currentUser.uid) {
           const userDocRef = doc(db, "users", auth.currentUser.uid);
           await setDoc(
@@ -229,7 +234,6 @@ export const changeOwnEmail = createAsyncThunk(
         let message = "Не вдалося змінити email.";
         let debugInfo = "";
 
-        // Подробный разбор известных ошибок
         if (firebaseError.code === "auth/invalid-email") {
           message = "Невірний формат email.";
         } else if (firebaseError.code === "auth/email-already-in-use") {
@@ -240,7 +244,6 @@ export const changeOwnEmail = createAsyncThunk(
           message =
             "Має бути підтвердження email через листа. Спробуйте перевірити пошту.";
         } else {
-          // для любой другой ошибки выводим code и message (это часто проясняет причину)
           debugInfo =
             "\n[Firebase error]: " +
             (firebaseError.code || "") +
@@ -251,7 +254,6 @@ export const changeOwnEmail = createAsyncThunk(
         return rejectWithValue(message + debugInfo);
       }
     } catch (error: any) {
-      // Здесь ошибка вне updateEmail или fetchSignInMethodsForEmail: максимально раскрываем details
       return rejectWithValue(
         "Не вдалося змінити email. Деталі: " +
           (error.message || error.code || JSON.stringify(error)),
@@ -281,12 +283,21 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
       state.initialized = true;
+      state.blocked = false;
     },
     setLoggedOut: (state) => {
       state.user = null;
       state.loading = false;
       state.error = null;
       state.initialized = true;
+      state.blocked = false;
+    },
+    setBlocked: (state, action: { payload: string }) => {
+      state.user = null;
+      state.loading = false;
+      state.error = action.payload;
+      state.initialized = true;
+      state.blocked = true;
     },
   },
   extraReducers: (builder) => {
@@ -294,30 +305,43 @@ const authSlice = createSlice({
       .addCase(loginWithEmail.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.blocked = false;
       })
       .addCase(loginWithEmail.fulfilled, (state, action) => {
         state.user = action.payload.profile;
         state.loading = false;
         state.error = null;
         state.initialized = true;
+        state.blocked = false;
       })
       .addCase(loginWithEmail.rejected, (state, action) => {
         state.loading = false;
+        state.user = null;
         state.error = (action.payload as string) || "Помилка авторизації.";
+        // ставим blocked если ошибка о выключенном аккаунте
+        if (
+          action.payload &&
+          (action.payload as string).toLowerCase().includes("вимкнено")
+        ) {
+          state.blocked = true;
+        }
       })
       .addCase(registerWithEmail.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.blocked = false;
       })
       .addCase(registerWithEmail.fulfilled, (state, action) => {
         state.user = action.payload.profile;
         state.loading = false;
         state.error = null;
         state.initialized = true;
+        state.blocked = false;
       })
       .addCase(registerWithEmail.rejected, (state, action) => {
         state.loading = false;
         state.error = (action.payload as string) || "Помилка реєстрації.";
+        state.blocked = false;
       })
       .addCase(changeOwnPassword.pending, (state) => {
         state.loading = true;
@@ -326,7 +350,6 @@ const authSlice = createSlice({
       .addCase(changeOwnPassword.fulfilled, (state) => {
         state.loading = false;
         state.error = null;
-        // Пароль изменён, ничего обновлять в профиле не нужно
       })
       .addCase(changeOwnPassword.rejected, (state, action) => {
         state.loading = false;
@@ -351,6 +374,7 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.loading = false;
+        state.blocked = false;
       });
   },
 });
@@ -360,5 +384,8 @@ export const selectIsAuthLoading = (state: RootState) => state.auth.loading;
 export const selectAuthError = (state: RootState) => state.auth.error;
 export const selectAuthInitialized = (state: RootState) =>
   state.auth.initialized;
+export const selectIsBlocked = (state: RootState) => state.auth.blocked;
+
+export const { setLoggedIn, setLoggedOut, setBlocked } = authSlice.actions;
 
 export default authSlice.reducer;

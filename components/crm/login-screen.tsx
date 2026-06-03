@@ -123,9 +123,9 @@ export function LoginScreen({
           </form>
 
           <div className="mt-6 text-center">
-            <button className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            {/* <button className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Забули пароль?
-            </button>
+            </button> */}
             <div className="mt-2">
               <button
                 type="button"
@@ -136,17 +136,6 @@ export function LoginScreen({
               </button>
             </div>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-6 p-3 rounded-xl bg-secondary/30 border border-border/30"
-          >
-            <p className="text-xs text-center text-muted-foreground">
-              Вхід через Firebase Auth (email/password)
-            </p>
-          </motion.div>
         </div>
       </motion.div>
     </div>
