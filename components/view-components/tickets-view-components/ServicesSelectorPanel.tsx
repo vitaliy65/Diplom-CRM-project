@@ -3,30 +3,39 @@
 import { motion } from "framer-motion";
 import { useAppSelector } from "@/store/hooks";
 import { selectServices } from "@/store/slices/services-slice";
-import { Check, WrenchIcon } from "lucide-react";
+import { Check, WrenchIcon, X } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
 
 type ServicesSelectorPanelProps = {
   selectedIds: string[];
   onToggle: (id: string) => void;
+  onClose: () => void;
 };
 
 export function ServicesSelectorPanel({
   selectedIds,
   onToggle,
+  onClose,
 }: ServicesSelectorPanelProps) {
   const services = useAppSelector(selectServices);
-
+  const isMobile = useIsMobile();
   return (
     <motion.div
       initial={{ x: -340, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: -340, opacity: 0 }}
       transition={{ type: "spring", damping: 28, stiffness: 280 }}
-      className="w-[300px] shrink-0 flex flex-col rounded-xl border border-border bg-background shadow-xl overflow-hidden self-stretch"
+      className={`w-[300px] shrink-0 flex flex-col rounded-xl border border-border bg-background shadow-xl overflow-hidden self-stretch ${isMobile ? "w-full rounded-none!" : ""}`}
       style={{ zIndex: 9 }}
     >
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40">
+        {isMobile && (
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        )}
         <WrenchIcon className="h-4 w-4 text-primary" />
         <span className="text-sm font-semibold text-foreground">Послуги</span>
         {selectedIds.length > 0 && (

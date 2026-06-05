@@ -77,7 +77,7 @@ function RenderObjLabel({
       {obj.map(({ labelText, id, viewType }, idx) => (
         <a
           key={id}
-          className="table-link text-xs px-2 py-1 cursor-pointer"
+          className="table-link text-sm px-2 py-1 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             switch (viewType) {
@@ -173,7 +173,7 @@ function TableRowComponent({
           <td
             key={idx}
             className={
-              "py-2 px-3 text-sm border-b border-border whitespace-nowrap" +
+              "py-1 px-2 text-sm border-b border-border whitespace-nowrap" +
               (idx !== headers.length - 1 ? " border-r border-border" : "")
             }
           >

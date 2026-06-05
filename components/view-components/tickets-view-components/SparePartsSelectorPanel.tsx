@@ -4,21 +4,26 @@ import { motion } from "framer-motion";
 import { useAppSelector } from "@/store/hooks";
 import { selectStorage } from "@/store/slices/storage-slice";
 import type { UsedPartsTicket } from "@/lib/types";
-import { Check, PackageIcon } from "lucide-react";
+import { Check, PackageIcon, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
 
 type SparePartsSelectorPanelProps = {
   selectedParts: UsedPartsTicket[];
   onToggle: (id: string, name: string) => void;
   onQuantityChange: (id: string, quantity: number) => void;
+  onClose: () => void;
 };
 
 export function SparePartsSelectorPanel({
   selectedParts,
   onToggle,
   onQuantityChange,
+  onClose,
 }: SparePartsSelectorPanelProps) {
   const parts = useAppSelector(selectStorage);
+  const isMobile = useIsMobile();
 
   const getSelected = (id: string) => selectedParts.find((p) => p.id === id);
 
@@ -28,11 +33,16 @@ export function SparePartsSelectorPanel({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: -340, opacity: 0 }}
       transition={{ type: "spring", damping: 28, stiffness: 280, delay: 0.04 }}
-      className="w-[300px] shrink-0 flex flex-col rounded-xl border border-border bg-background shadow-xl overflow-hidden self-stretch"
+      className={`w-[300px] shrink-0 flex flex-col rounded-xl border border-border bg-background shadow-xl overflow-hidden self-stretch ${isMobile ? "w-full rounded-none!" : ""}`}
       style={{ zIndex: 8 }}
     >
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40">
+        {isMobile && (
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        )}
         <PackageIcon className="h-4 w-4 text-primary" />
         <span className="text-sm font-semibold text-foreground">
           Запчастини

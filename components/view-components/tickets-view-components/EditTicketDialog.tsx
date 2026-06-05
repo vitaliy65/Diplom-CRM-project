@@ -19,6 +19,8 @@ import { selectMasters } from "@/store/slices/users-slice";
 import { WrenchIcon, PackageIcon, X } from "lucide-react";
 import { ServicesSelectorPanel } from "./ServicesSelectorPanel";
 import { SparePartsSelectorPanel } from "./SparePartsSelectorPanel";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,6 +59,7 @@ export function EditTicketDialog({
   const masters = useAppSelector(selectMasters);
   const currentUser = useAppSelector(selectCurrentUser);
   const storage = useAppSelector(selectStorage);
+  const isMobile = useIsMobile();
 
   const [formData, setFormData] =
     useState<Omit<Ticket, "id" | "isEmailDelivered">>(emptyTicketFields);
@@ -69,9 +72,6 @@ export function EditTicketDialog({
     if (editingTicket) {
       const { id, ...rest } = editingTicket;
       setFormData({ ...emptyTicketFields, ...rest });
-      // Auto-open panels if ticket already has selections
-      setShowServices((rest.services?.length ?? 0) > 0);
-      setShowParts((rest.usedParts?.length ?? 0) > 0);
     } else {
       setFormData(emptyTicketFields);
       setShowServices(false);
@@ -144,27 +144,6 @@ export function EditTicketDialog({
     [],
   );
 
-  // ── Panel toggle helpers (also clear selections on close) ──────────────
-
-  const toggleServices = () => {
-    setShowServices((prev) => {
-      if (prev) {
-        // closing — clear selections
-        setFormData((f) => ({ ...f, services: [] }));
-      }
-      return !prev;
-    });
-  };
-
-  const toggleParts = () => {
-    setShowParts((prev) => {
-      if (prev) {
-        setFormData((f) => ({ ...f, usedParts: [] }));
-      }
-      return !prev;
-    });
-  };
-
   // ── Submit ─────────────────────────────────────────────────────────────
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -216,8 +195,12 @@ export function EditTicketDialog({
           />
 
           {/* Dialog row — main form + slide-out panels */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-            <div className="flex items-stretch gap-2 pointer-events-auto max-h-[90vh]">
+          <div
+            className={`fixed inset-0 z-50 flex items-center justify-center pointer-events-none ${isMobile ? "" : ""}`}
+          >
+            <div
+              className={`flex items-stretch gap-2 pointer-events-auto max-h-[90vh] ${isMobile ? "w-full" : ""}`}
+            >
               {/* ── Main dialog ─────────────────────────────────────────── */}
               <motion.div
                 key="dialog"
@@ -225,7 +208,8 @@ export function EditTicketDialog({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 8 }}
                 transition={{ duration: 0.2 }}
-                className="relative z-10 w-[480px] bg-background border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden"
+                className={`relative z-10 w-[480px] bg-background border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden 
+                  ${isMobile && "w-full rounded-none!"} ${(showServices || showParts) && "hidden"}`}
               >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
@@ -329,7 +313,7 @@ export function EditTicketDialog({
                       {/* Services toggle */}
                       <button
                         type="button"
-                        onClick={toggleServices}
+                        onClick={() => setShowServices((prev) => !prev)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
                           showServices
                             ? "border-primary bg-primary/5 text-primary"
@@ -353,7 +337,7 @@ export function EditTicketDialog({
                       {/* Spare parts toggle */}
                       <button
                         type="button"
-                        onClick={toggleParts}
+                        onClick={() => setShowParts((prev) => !prev)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
                           showParts
                             ? "border-primary bg-primary/5 text-primary"
@@ -398,6 +382,7 @@ export function EditTicketDialog({
                 <ServicesSelectorPanel
                   selectedIds={formData.services}
                   onToggle={handleToggleService}
+                  onClose={() => setShowServices((prev) => !prev)}
                 />
               )}
 
@@ -407,6 +392,7 @@ export function EditTicketDialog({
                   selectedParts={formData.usedParts}
                   onToggle={handleTogglePart}
                   onQuantityChange={handlePartQuantityChange}
+                  onClose={() => setShowParts((prev) => !prev)}
                 />
               )}
             </div>
