@@ -209,7 +209,7 @@ export function EditTicketDialog({
                 exit={{ opacity: 0, scale: 0.96, y: 8 }}
                 transition={{ duration: 0.2 }}
                 className={`relative z-10 w-[480px] bg-background border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden 
-                  ${isMobile && "w-full rounded-none!"} ${(showServices || showParts) && "hidden"}`}
+                  ${isMobile && "w-full rounded-none!"} ${(showServices || showParts) && isMobile && "hidden"}`}
               >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
