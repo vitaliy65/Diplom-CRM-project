@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSelector, createSlice } from "@reduxjs/toolkit";
 import {
   addDoc,
   collection,
@@ -390,13 +390,20 @@ export const selectTicketsLoading = (state: RootState) => state.tickets.loading;
 export const selectTicketsSaving = (state: RootState) => state.tickets.saving;
 export const selectTicketsError = (state: RootState) => state.tickets.error;
 
-export const selectPaginatedTickets = (state: RootState) => {
-  const { items, filteredItems, currentPage, rowsPerPage } = state.tickets;
-  const data = getDisplayList(items, filteredItems);
-  const startIdx = (currentPage - 1) * rowsPerPage;
-  const endIdx = startIdx + rowsPerPage;
-  return data.slice(startIdx, endIdx);
-};
+export const selectPaginatedTickets = createSelector(
+  [
+    (state: RootState) => state.tickets.items,
+    (state: RootState) => state.tickets.filteredItems,
+    (state: RootState) => state.tickets.currentPage,
+    (state: RootState) => state.tickets.rowsPerPage,
+  ],
+  (items, filteredItems, currentPage, rowsPerPage) => {
+    const data = getDisplayList(items, filteredItems);
+    const startIdx = (currentPage - 1) * rowsPerPage;
+    const endIdx = startIdx + rowsPerPage;
+    return data.slice(startIdx, endIdx);
+  },
+);
 
 export const selectTicketsTotalRows = (state: RootState) => {
   const { items, filteredItems } = state.tickets;

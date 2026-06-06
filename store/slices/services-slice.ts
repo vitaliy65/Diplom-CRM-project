@@ -13,6 +13,7 @@ import type { RootState } from "@/store";
 import type { Service, UserRole } from "@/lib/types";
 import { serviceSchema } from "@/lib/validations/schemas";
 import { parseWithSchema } from "@/lib/validations/parse";
+import { serializeFirestore } from "@/lib/firestore-serialize";
 
 // Добавляем поля пагинации и фильтрации в стейт
 type ServicesState = {
@@ -58,7 +59,7 @@ export const subscribeServices = createAsyncThunk(
     unsubscribeServices = onSnapshot(collection(db, "services"), (snapshot) => {
       const items: Service[] = snapshot.docs.map((d) => ({
         id: d.id,
-        ...(d.data() as Omit<Service, "id">),
+        ...serializeFirestore(d.data() as Omit<Service, "id">),
       }));
       dispatch(servicesSlice.actions.setServices(items));
     });

@@ -13,6 +13,7 @@ import type { RootState } from "@/store";
 import type { SpareParts, UserRole } from "@/lib/types";
 import { sparePartSchema } from "@/lib/validations/schemas";
 import { parseWithSchema } from "@/lib/validations/parse";
+import { serializeFirestore } from "@/lib/firestore-serialize";
 
 // --- Пагинация и фильтрация ---
 type StorageState = {
@@ -59,7 +60,7 @@ export const subscribeStorage = createAsyncThunk(
     unsubscribeStorage = onSnapshot(collection(db, "storage"), (snapshot) => {
       const items: SpareParts[] = snapshot.docs.map((d) => ({
         id: d.id,
-        ...(d.data() as Omit<SpareParts, "id">),
+        ...serializeFirestore(d.data() as Omit<SpareParts, "id">),
       }));
       dispatch(storageSlice.actions.setStorage(items));
     });
@@ -120,25 +121,6 @@ export const updateSparePart = createAsyncThunk(
 
 export const deleteSparePart = createAsyncThunk(
   "storage/delete",
-  async (id: string, { getState, rejectWithValue }) => {
-    if (!db || !isFirebaseConfigured) {
-      return rejectWithValue("Firebase не налаштований.");
-    }
-    const role = (getState() as RootState).auth.user?.role;
-    if (!canManageStorage(role)) {
-      return rejectWithValue("Недостатньо прав для видалення запчастини.");
-    }
-    try {
-      await deleteDoc(doc(db, "storage", id));
-    } catch {
-      return rejectWithValue("Не вдалося видалити запчастину.");
-    }
-  },
-);
-
-// New thunk: deletePart (by analogy to deleteSparePart)
-export const deletePart = createAsyncThunk(
-  "storage/deletePart",
   async (id: string, { getState, rejectWithValue }) => {
     if (!db || !isFirebaseConfigured) {
       return rejectWithValue("Firebase не налаштований.");
@@ -218,10 +200,6 @@ const storageSlice = createSlice({
       .addCase(deleteSparePart.rejected, (state, action) => {
         state.error =
           (action.payload as string) || "Помилка видалення запчастини.";
-      })
-      .addCase(deletePart.rejected, (state, action) => {
-        state.error =
-          (action.payload as string) || "Помилка видалення запчастини.";
       });
   },
 });
@@ -256,18 +234,6 @@ export const selectStorageCurrentPage = (state: RootState) =>
   state.storage.currentPage;
 export const selectStorageRowsPerPage = (state: RootState) =>
   state.storage.rowsPerPage;
-
-// New selector: getPartByID
-export const getPartByID = (
-  state: RootState,
-  id: string,
-): SpareParts | undefined => {
-  const data = getDisplayList(
-    state.storage.items,
-    state.storage.filteredItems,
-  );
-  return data.find((item) => item.id === id);
-};
 
 // Экспортируем actions для пагинации и фильтрации
 export const {

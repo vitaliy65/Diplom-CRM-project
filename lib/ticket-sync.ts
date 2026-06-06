@@ -9,6 +9,11 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Client, Ticket, UserProfile, UsedPartsTicket } from "@/lib/types";
+import {
+  normalizeServiceIds,
+  serializeFirestore,
+  timestampToIso,
+} from "@/lib/firestore-serialize";
 
 /** Гарантує масиви та рядки для старих/неповних документів у Firestore */
 export function normalizeTicketFromFirestore(
@@ -27,13 +32,18 @@ export function normalizeTicketFromFirestore(
     isEmailDelivered: raw.isEmailDelivered ?? false,
     masterId: raw.masterId ?? null,
     masterName: raw.masterName ?? null,
-    createdAt: raw.createdAt ?? "",
-    readyAt: raw.readyAt ?? "",
+    // Firestore може повертати Timestamp-обʼєкт — перетворюємо на ISO-рядок
+    createdAt: timestampToIso(raw.createdAt),
+    readyAt: timestampToIso(raw.readyAt),
     slaViolation: Boolean(raw.slaViolation),
-    comments: Array.isArray(raw.comments) ? raw.comments : [],
-    services: Array.isArray(raw.services) ? raw.services : [],
+    // Коментарі можуть містити Timestamp-поля — серіалізуємо їх
+    comments: Array.isArray(raw.comments)
+      ? serializeFirestore(raw.comments)
+      : [],
+    // services у Firestore трапляються як обʼєкти або рядки — зводимо до ID
+    services: normalizeServiceIds(raw.services),
     usedParts: Array.isArray(raw.usedParts)
-      ? (raw.usedParts as UsedPartsTicket[])
+      ? serializeFirestore(raw.usedParts as UsedPartsTicket[])
       : [],
   };
 }

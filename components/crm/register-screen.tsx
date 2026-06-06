@@ -36,7 +36,7 @@ export function RegisterScreen({ onBackToLogin }: { onBackToLogin: () => void })
       return
     }
 
-    await dispatch(registerWithEmail({ name, email, password, role }))
+    await dispatch(registerWithEmail({ name, email, password }))
   }
 
   return (
@@ -72,19 +72,6 @@ export function RegisterScreen({ onBackToLogin }: { onBackToLogin: () => void })
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" className="bg-secondary/50 border-border/50 focus:border-primary/50 h-11" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Роль</Label>
-              <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-                <SelectTrigger className="bg-secondary/50 border-border/50 focus:border-primary/50 h-11">
-                  <SelectValue placeholder="Оберіть роль" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Адміністратор</SelectItem>
-                  <SelectItem value="manager">Менеджер</SelectItem>
-                  <SelectItem value="master">Майстер</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Пароль</Label>
