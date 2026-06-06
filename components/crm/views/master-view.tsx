@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Wrench, CheckCircle2, ChevronRight } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { CheckCircle2, ChevronRight } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
 import { selectTickets } from "@/store/slices/tickets-slice";
 import { selectCurrentUser } from "@/store/slices/auth-slice";

@@ -18,11 +18,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { roleLabels, type UserProfile as User } from "@/lib/types";
+import { roleLabels, UserRole, type UserProfile as User } from "@/lib/types";
 import { Mail } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/auth-slice";
+import { updateUser } from "@/store/slices/users-slice";
 
 export const roleConfig = {
   admin: {
@@ -57,9 +58,14 @@ export function UserCard({
   const config = roleConfig[user.role];
   const Icon = config.icon;
   const currentUser = useAppSelector(selectCurrentUser);
+  const dispatch = useAppDispatch();
 
   // Only show action buttons if the card user is not the current user
   const isCurrentUser = currentUser && currentUser.id === user.id;
+
+  const onChangeRole = async (role: UserRole) => {
+    await dispatch(updateUser({ id: user.id, data: { role: role } }));
+  };
 
   return (
     <motion.div
@@ -129,7 +135,7 @@ export function UserCard({
         </div>
 
         {/* Actions */}
-        {!isCurrentUser && (
+        {!isCurrentUser && user.role !== "admin" && (
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2">
               <Switch checked={user.active} onCheckedChange={onToggleStatus} />
@@ -142,7 +148,6 @@ export function UserCard({
                 {user.active ? "Активний" : "Неактивний"}
               </span>
             </div>
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -150,10 +155,36 @@ export function UserCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="">
-                <DropdownMenuItem>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Редагувати
-                </DropdownMenuItem>
+                {/* If user is admin, Змінити роль is disabled */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <DropdownMenuItem>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Змінити роль
+                    </DropdownMenuItem>
+                  </DropdownMenuTrigger>
+                  {/* Role change menu only available if NOT admin */}
+                  <DropdownMenuContent align="end" className="">
+                    {["manager", "master"].map((role) => (
+                      <DropdownMenuItem
+                        key={role}
+                        disabled={user.role === role}
+                        onClick={() => {
+                          if (user.role !== role) {
+                            onChangeRole(role as UserRole);
+                          }
+                        }}
+                      >
+                        {roleLabels[role as "manager" | "master"]}
+                        {user.role === role && (
+                          <span className="ml-2 text-glow-green">
+                            (Поточна)
+                          </span>
+                        )}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <DropdownMenuItem onClick={onToggleStatus}>
                   {user.active ? (
                     <>

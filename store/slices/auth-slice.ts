@@ -69,7 +69,7 @@ export const subscribeAuth = createAsyncThunk(
         return;
       }
       const profile = await resolveUserProfile(firebaseUser);
-      if (!profile.active) {
+      if (!profile.active && auth) {
         // Сразу разлогинить и показать ошибку, если выключен
         await signOut(auth);
         dispatch(authSlice.actions.setBlocked("Ваш акаунт вимкнено."));
@@ -213,7 +213,9 @@ export const changeOwnEmail = createAsyncThunk(
         if (e.code === "auth/invalid-email") {
           return rejectWithValue("Невірний формат email.");
         }
-        return rejectWithValue("Не вдалося перевірити email. Спробуйте пізніше.");
+        return rejectWithValue(
+          "Не вдалося перевірити email. Спробуйте пізніше.",
+        );
       }
       if (methods && methods.length > 0) {
         return rejectWithValue("Користувач з таким email вже існує.");
