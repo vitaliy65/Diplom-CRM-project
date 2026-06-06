@@ -122,7 +122,6 @@ export const registerWithEmail = createAsyncThunk(
       email: string;
       password: string;
       name: string;
-      role: UserProfile["role"];
     },
     { rejectWithValue },
   ) => {
@@ -143,10 +142,14 @@ export const registerWithEmail = createAsyncThunk(
         payload.password,
       );
       await updateProfile(credential.user, { displayName: payload.name });
+      // БЕЗПЕКА: роль НІКОЛИ не береться з клієнта під час самостійної
+      // реєстрації — інакше будь-хто міг би створити собі акаунт адміністратора.
+      // Усі нові акаунти отримують найнижчий рівень доступу ("master").
+      // Підвищити роль може лише адміністратор через updateUser.
       await setDoc(doc(db, "users", credential.user.uid), {
         name: payload.name,
         email: payload.email,
-        role: payload.role,
+        role: "master" satisfies UserProfile["role"],
         active: true,
         createdAt: new Date().toISOString(),
       });
@@ -210,10 +213,7 @@ export const changeOwnEmail = createAsyncThunk(
         if (e.code === "auth/invalid-email") {
           return rejectWithValue("Невірний формат email.");
         }
-        return rejectWithValue(
-          "Помилка при перевірці email: " +
-            (e.message || e.code || JSON.stringify(e)),
-        );
+        return rejectWithValue("Не вдалося перевірити email. Спробуйте пізніше.");
       }
       if (methods && methods.length > 0) {
         return rejectWithValue("Користувач з таким email вже існує.");
@@ -232,7 +232,6 @@ export const changeOwnEmail = createAsyncThunk(
         return { email: payload.newEmail };
       } catch (firebaseError: any) {
         let message = "Не вдалося змінити email.";
-        let debugInfo = "";
 
         if (firebaseError.code === "auth/invalid-email") {
           message = "Невірний формат email.";
@@ -243,21 +242,12 @@ export const changeOwnEmail = createAsyncThunk(
         } else if (firebaseError.code === "auth/user-mismatch") {
           message =
             "Має бути підтвердження email через листа. Спробуйте перевірити пошту.";
-        } else {
-          debugInfo =
-            "\n[Firebase error]: " +
-            (firebaseError.code || "") +
-            " " +
-            (firebaseError.message || "");
         }
 
-        return rejectWithValue(message + debugInfo);
+        return rejectWithValue(message);
       }
-    } catch (error: any) {
-      return rejectWithValue(
-        "Не вдалося змінити email. Деталі: " +
-          (error.message || error.code || JSON.stringify(error)),
-      );
+    } catch {
+      return rejectWithValue("Не вдалося змінити email. Спробуйте пізніше.");
     }
   },
 );

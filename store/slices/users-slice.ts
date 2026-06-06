@@ -1,9 +1,10 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSelector, createSlice } from "@reduxjs/toolkit";
 import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
 import { syncTicketsForMaster } from "@/lib/ticket-sync";
 import type { UserProfile } from "@/lib/types";
+import { serializeFirestore } from "@/lib/firestore-serialize";
 
 // ---
 // Добавляем систему страничек как в tickets-slice.ts
@@ -45,7 +46,7 @@ export const subscribeUsers = createAsyncThunk(
     unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
       const items: UserProfile[] = snapshot.docs.map((d) => ({
         id: d.id,
-        ...(d.data() as Omit<UserProfile, "id">),
+        ...serializeFirestore(d.data() as Omit<UserProfile, "id">),
       }));
       dispatch(usersSlice.actions.setUsers(items));
     });
@@ -133,8 +134,10 @@ export const selectUsersRowsPerPage = (state: RootState) =>
   state.users.rowsPerPage;
 
 // Быстрый фильтр для мастеров (на ВСЕХ стр.), отдельно для пагинации не нужен
-export const selectMasters = (state: RootState) =>
-  state.users.items.filter((u) => u.role === "master");
+// Мемоизируем, чтобы не создавать новый массив при каждом вызове селектора
+export const selectMasters = createSelector([selectUsers], (users) =>
+  users.filter((u) => u.role === "master"),
+);
 
 // Экспортируем actions для управления пагинацией
 export const { setCurrentPage, setRowsPerPage } = usersSlice.actions;

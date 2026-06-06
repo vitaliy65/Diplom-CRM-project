@@ -14,6 +14,7 @@ import type { RootState } from "@/store";
 import { clientSchema } from "@/lib/validations/schemas";
 import { parseWithSchema } from "@/lib/validations/parse";
 import { syncTicketsForClient } from "@/lib/ticket-sync";
+import { serializeFirestore } from "@/lib/firestore-serialize";
 
 // --- добавляем функционал страничек (pagination) и фильтрации (filtered) ---
 
@@ -61,7 +62,7 @@ export const subscribeClients = createAsyncThunk(
     unsubscribeClients = onSnapshot(ref, (snapshot) => {
       const payload: Client[] = snapshot.docs.map((d) => ({
         id: d.id,
-        ...(d.data() as Omit<Client, "id">),
+        ...serializeFirestore(d.data() as Omit<Client, "id">),
       }));
       dispatch(clientsSlice.actions.setClients(payload));
     });
