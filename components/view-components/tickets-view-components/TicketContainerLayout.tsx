@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreateTicketDialog } from "./CreateTicketDialog";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { selectClients } from "@/store/slices/clients-slice";
@@ -13,15 +13,27 @@ import { ticketsExportConfig } from "@/lib/csv/Exportconfigs";
 import ViewStyleSwitch, { type TicketViewStyle } from "./ViewStyleSwitch";
 import TicketTableView from "./TicketTableView";
 import KanbanBoard from "./kanban/KanbanBoard";
+import { useSearchParams } from "next/navigation";
 
 export default function TicketContainerLayout() {
   const dispatch = useAppDispatch();
   const tickets = useAppSelector(selectTickets);
   const clients = useAppSelector(selectClients);
+  const searchParams = useSearchParams();
 
   const [viewStyle, setViewStyle] = useState<TicketViewStyle>("table");
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [saving] = useState(false);
+
+  // Filter tickets by search params, if "id" is found in query
+  useEffect(() => {
+    const Id = searchParams?.get("id");
+    if (Id) {
+      const filtered = tickets.filter((t) => t.id === Id);
+      dispatch(setFilteredItems({ items: filtered, filterActive: true }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, tickets, searchParams]);
 
   const handleRowClick = (ticketId?: string) => {
     if (!ticketId) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import TableViewBox from "@/components/static/TableViewBox";
+import TableViewBox, { TableRow } from "@/components/static/TableViewBox";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import {
   selectPaginatedClients,
@@ -12,6 +12,7 @@ import {
   setFilteredClients,
   selectClients,
 } from "@/store/slices/clients-slice";
+import { selectTickets } from "@/store/slices/tickets-slice";
 import TopViewButtons from "@/components/buttons/TopViewButtons";
 import ShowTablePage from "@/components/static/ShowTablePage";
 import type { Client } from "@/lib/types";
@@ -23,11 +24,11 @@ import { clientsExportConfig } from "@/lib/csv/Exportconfigs";
 import { useSearchParams } from "next/navigation";
 
 // порядок отображения полей таблицы клиентов
-const CLIENT_COLUMNS: Array<keyof Client> = ["name", "email", "phone"];
+const CLIENT_COLUMNS = ["name", "email", "phone", "clientTickets"];
 
-// Тип для ассоциации строки с clientId
+// Тип для ассоциации строки с clientId и obj с заказами клиента
 type TableRowWithClientId = {
-  row: { text: string }[];
+  row: TableRow[];
   clientId: string;
 };
 
@@ -39,6 +40,9 @@ export default function ClientsContainerLayout() {
   const totalRows = useAppSelector(selectClientsTotalRows);
   const currentPage = useAppSelector(selectClientsCurrentPage);
   const rowsPerPage = useAppSelector(selectClientsRowsPerPage);
+
+  // Все тикеты для поиска заказов клиента
+  const allTickets = useAppSelector(selectTickets);
 
   const headers = CLIENT_COLUMNS as string[];
   const searchParams = useSearchParams();
@@ -52,14 +56,34 @@ export default function ClientsContainerLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, clients, searchParams]);
 
-  // Associate each row with clientId for edit support
+  // Строим таблицу с obj-заказами для TableViewBox
   const data: TableRowWithClientId[] = paginatedClients.map((client) => {
-    const row = headers.map((key) => ({
-      text:
-        client[key as keyof Client] == null
-          ? ""
-          : String(client[key as keyof Client]),
-    }));
+    const row = headers.map((key) => {
+      let base: TableRow = {
+        text:
+          client[key as keyof Client] == null
+            ? ""
+            : String(client[key as keyof Client]),
+      };
+      // Добавляем obj только к первой колонке (например, к name)
+      if (key === "clientTickets") {
+        // Найдём все тикеты этого клиента
+        const clientTickets = allTickets.filter(
+          (ticket) => ticket.clientId === client.id,
+        );
+        if (clientTickets.length > 0) {
+          base = {
+            ...base,
+            obj: clientTickets.map((ticket) => ({
+              labelText: `${ticket.device}`,
+              id: ticket.id,
+              viewType: "tickets",
+            })),
+          };
+        }
+      }
+      return base;
+    });
     return { row, clientId: client.id };
   });
 

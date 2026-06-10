@@ -3,11 +3,12 @@ import { useAppDispatch } from "@/store/hooks";
 import { setSelectedClientId } from "@/store/slices/selected-client-slice";
 import { setSelectedPartId } from "@/store/slices/selected-parts-slice";
 import { setSelectedServiceId } from "@/store/slices/selected-service-slice";
-import { setActiveView } from "@/store/slices/view-slice";
+import { setActiveView, setSelectedId } from "@/store/slices/view-slice";
 import { useRouter } from "next/navigation";
 import { statusLabels, TicketStatus } from "@/lib/types";
 import { motion } from "framer-motion";
 import { setSelectedMasterId } from "@/store/slices/selected-master-slice";
+import { setSelectedTicketId } from "@/store/slices/selected-ticket-slice";
 
 interface TableViewBoxI {
   headers: string[];
@@ -80,24 +81,9 @@ function RenderObjLabel({
           className="table-link text-sm px-2 py-1 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
-            switch (viewType) {
-              case "clients":
-                dispatch(setActiveView("clients"));
-                dispatch(setSelectedClientId(id));
-                break;
-              case "users":
-                dispatch(setActiveView("users"));
-                dispatch(setSelectedMasterId(id));
-                break;
-              case "services":
-                dispatch(setActiveView("services"));
-                dispatch(setSelectedServiceId(id));
-                break;
-              case "storage":
-                dispatch(setActiveView("storage"));
-                dispatch(setSelectedPartId(id));
-                break;
-            }
+            dispatch(setActiveView(viewType));
+            dispatch(setSelectedId(id));
+
             // Добавить id в query (вручную с строкой, чтобы соответствовать типу)
             router.push(`./${viewType}?id=${encodeURIComponent(id)}`);
           }}
