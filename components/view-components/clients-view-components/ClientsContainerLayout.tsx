@@ -11,6 +11,7 @@ import {
   setRowsPerPage,
   setFilteredClients,
   selectClients,
+  deleteClient,
 } from "@/store/slices/clients-slice";
 import { selectTickets } from "@/store/slices/tickets-slice";
 import TopViewButtons from "@/components/buttons/TopViewButtons";
@@ -22,6 +23,7 @@ import { EditClientDialog } from "./EditClientDialog";
 import { useState, useEffect } from "react";
 import { clientsExportConfig } from "@/lib/csv/Exportconfigs";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 // порядок отображения полей таблицы клиентов
 const CLIENT_COLUMNS = ["name", "email", "phone", "clientTickets"];
@@ -97,6 +99,20 @@ export default function ClientsContainerLayout() {
     if (client) setEditingClient(client);
   };
 
+  const handleDeleteRows = async (rowIndices: number[]) => {
+    const ids = rowIndices
+      .map((idx) => data[idx]?.clientId)
+      .filter((id): id is string => Boolean(id));
+    if (ids.length === 0) return;
+    const results = await Promise.allSettled(
+      ids.map((id) => dispatch(deleteClient(id)).unwrap()),
+    );
+    const failed = results.filter((r) => r.status === "rejected").length;
+    const succeeded = ids.length - failed;
+    if (succeeded > 0) toast.success(`Видалено клієнтів: ${succeeded}`);
+    if (failed > 0) toast.error(`Не вдалося видалити: ${failed}`);
+  };
+
   return (
     <div className="container-layout">
       <TopViewButtons
@@ -113,6 +129,7 @@ export default function ClientsContainerLayout() {
         headers={headers}
         data={data.map((d) => d.row)}
         onRowClick={(idx: number) => handleRowClick(data[idx]?.clientId)}
+        onDeleteRows={handleDeleteRows}
       />
       <ShowTablePage
         totalRows={totalRows}

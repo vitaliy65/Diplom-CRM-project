@@ -12,6 +12,7 @@ import {
   setStorageCurrentPage,
   setStorageRowsPerPage,
   setFilteredStorage,
+  deleteSparePart,
 } from "@/store/slices/storage-slice";
 import type { SpareParts } from "@/lib/types";
 import { CreateStorageDialog } from "./CreateStorageDialog";
@@ -22,6 +23,7 @@ import TableViewBox, { TableRow } from "@/components/static/TableViewBox";
 import { EditStorageDialog } from "./EditStorageDialog";
 import { storageExportConfig } from "@/lib/csv/Exportconfigs";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 // Определяем порядок отображения столбцов склада
 const STORAGE_COLUMNS: Array<keyof SpareParts> = [
@@ -85,6 +87,20 @@ export default function StorageContainerLayout() {
     if (item) setEditingStorage(item);
   };
 
+  const handleDeleteRows = async (rowIndices: number[]) => {
+    const ids = rowIndices
+      .map((idx) => data[idx]?.storageId)
+      .filter((id): id is string => Boolean(id));
+    if (ids.length === 0) return;
+    const results = await Promise.allSettled(
+      ids.map((id) => dispatch(deleteSparePart(id)).unwrap()),
+    );
+    const failed = results.filter((r) => r.status === "rejected").length;
+    const succeeded = ids.length - failed;
+    if (succeeded > 0) toast.success(`Видалено позицій: ${succeeded}`);
+    if (failed > 0) toast.error(`Не вдалося видалити: ${failed}`);
+  };
+
   // If loading, show skeleton
   if (!storage) {
     return (
@@ -111,6 +127,7 @@ export default function StorageContainerLayout() {
         headers={rawHeaders}
         data={data.map((d) => d.row)}
         onRowClick={(idx: number) => handleRowClick(data[idx]?.storageId)}
+        onDeleteRows={handleDeleteRows}
       />
       <ShowTablePage
         totalRows={totalRows}

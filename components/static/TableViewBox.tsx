@@ -9,11 +9,26 @@ import { statusLabels, TicketStatus } from "@/lib/types";
 import { motion } from "framer-motion";
 import { setSelectedMasterId } from "@/store/slices/selected-master-slice";
 import { setSelectedTicketId } from "@/store/slices/selected-ticket-slice";
+import { useEffect, useMemo, useState } from "react";
+import { Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TableViewBoxI {
   headers: string[];
   data: TableRow[][];
   onRowClick: (rowIdx: number) => void;
+  onDeleteRows?: (rowIndices: number[]) => void | Promise<void>;
 }
 
 export interface TableRow {
@@ -44,10 +59,33 @@ function RenderStatusBadge({ status }: { status: TicketStatus }) {
 }
 
 // TableHeader с вертикальными перегородками (border-r)
-function TableHeader({ headers }: { headers: string[] }) {
+function TableHeader({
+  headers,
+  selectable,
+  allSelected,
+  someSelected,
+  onToggleAll,
+}: {
+  headers: string[];
+  selectable: boolean;
+  allSelected: boolean;
+  someSelected: boolean;
+  onToggleAll: () => void;
+}) {
   return (
     <thead>
       <tr className="bg-muted text-sm text-muted-foreground">
+        {selectable && (
+          <th className="py-2 px-3 w-10 border-b border-r border-border">
+            <Checkbox
+              checked={
+                allSelected ? true : someSelected ? "indeterminate" : false
+              }
+              onCheckedChange={onToggleAll}
+              aria-label="Вибрати всі рядки"
+            />
+          </th>
+        )}
         {headers.map((header, idx) => (
           <th
             key={idx}
@@ -111,11 +149,17 @@ function TableRowComponent({
   headers,
   rowIdx,
   onRowClick,
+  selectable,
+  selected,
+  onToggleRow,
 }: {
   row: TableRow[];
   headers: string[];
   rowIdx: number;
   onRowClick: (rowIdx: number) => void;
+  selectable: boolean;
+  selected: boolean;
+  onToggleRow: (rowIdx: number) => void;
 }) {
   // Если row.length меньше headers.length — дополняем прочерками
   const completedRow: TableRow[] = [
@@ -138,10 +182,25 @@ function TableRowComponent({
         scale: 1.01,
         transition: { duration: 0.1 },
       }}
-      className="hover:bg-primary/10 cursor-pointer transition-color"
+      className={
+        "cursor-pointer transition-color " +
+        (selected ? "bg-primary/15" : "hover:bg-primary/10")
+      }
       onClick={() => onRowClick(rowIdx)}
       viewport={{ once: true }}
     >
+      {selectable && (
+        <td
+          className="py-1 px-3 w-10 border-b border-r border-border"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Checkbox
+            checked={selected}
+            onCheckedChange={() => onToggleRow(rowIdx)}
+            aria-label={`Вибрати рядок ${rowIdx + 1}`}
+          />
+        </td>
+      )}
       {completedRow.map((cell, idx) => {
         const hasValue =
           typeof cell.text === "string" && cell.text.trim() !== "";
@@ -184,34 +243,145 @@ export default function TableViewBox({
   headers,
   data,
   onRowClick,
+  onDeleteRows,
 }: TableViewBoxI) {
+  const selectable = typeof onDeleteRows === "function";
+
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Сигнатура содержимого таблицы. При смене страницы / фильтра / после
+  // удаления данные меняются — сбрасываем выбор, чтобы индексы не «протухали».
+  const dataSignature = useMemo(
+    () =>
+      data
+        .map((row) =>
+          row
+            .map((c) => c.text || c.obj?.map((o) => o.id).join("|") || "")
+            .join("~"),
+        )
+        .join("¦"),
+    [data],
+  );
+
+  useEffect(() => {
+    setSelected(new Set());
+  }, [dataSignature]);
+
+  const allSelected = data.length > 0 && selected.size === data.length;
+  const someSelected = selected.size > 0 && !allSelected;
+
+  const toggleAll = () => {
+    setSelected(allSelected ? new Set() : new Set(data.map((_, idx) => idx)));
+  };
+
+  const toggleRow = (rowIdx: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowIdx)) next.delete(rowIdx);
+      else next.add(rowIdx);
+      return next;
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!onDeleteRows || selected.size === 0) return;
+    setDeleting(true);
+    try {
+      await onDeleteRows([...selected].sort((a, b) => a - b));
+      setSelected(new Set());
+      setConfirmOpen(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const totalColumns = headers.length + (selectable ? 1 : 0);
+
   return (
-    <div className="overflow-auto bento-card hover:scale-none!">
-      <table className="min-w-full divide-y divide-border">
-        <TableHeader headers={headers} />
-        <tbody>
-          {data.length === 0 ? (
-            <tr>
-              <td
-                className="py-4 px-3 text-center text-muted-foreground"
-                colSpan={headers.length}
+    <div className="flex flex-col gap-2">
+      {selectable && selected.size > 0 && (
+        <div className="flex items-center justify-between gap-3 bento-card hover:scale-none! px-4 py-2">
+          <span className="text-sm font-medium">Вибрано: {selected.size}</span>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setConfirmOpen(true)}
+            className="gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Видалити вибране
+          </Button>
+        </div>
+      )}
+
+      <div className="overflow-auto bento-card hover:scale-none!">
+        <table className="min-w-full divide-y divide-border">
+          <TableHeader
+            headers={headers}
+            selectable={selectable}
+            allSelected={allSelected}
+            someSelected={someSelected}
+            onToggleAll={toggleAll}
+          />
+          <tbody>
+            {data.length === 0 ? (
+              <tr>
+                <td
+                  className="py-4 px-3 text-center text-muted-foreground"
+                  colSpan={totalColumns}
+                >
+                  Даних не знайдено
+                </td>
+              </tr>
+            ) : (
+              data.map((row, idx) => (
+                <TableRowComponent
+                  key={idx}
+                  row={row}
+                  headers={headers}
+                  rowIdx={idx}
+                  onRowClick={onRowClick}
+                  selectable={selectable}
+                  selected={selected.has(idx)}
+                  onToggleRow={toggleRow}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {selectable && (
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Видалити вибрані записи?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Буде видалено {selected.size}{" "}
+                {selected.size === 1 ? "запис" : "записів"}. Цю дію неможливо
+                скасувати.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>
+                Скасувати
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleConfirmDelete();
+                }}
+                disabled={deleting}
+                className="bg-destructive text-white hover:bg-destructive/90"
               >
-                Даних не знайдено
-              </td>
-            </tr>
-          ) : (
-            data.map((row, idx) => (
-              <TableRowComponent
-                key={idx}
-                row={row}
-                headers={headers}
-                rowIdx={idx}
-                onRowClick={onRowClick}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
+                {deleting ? "Видалення..." : "Видалити"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }

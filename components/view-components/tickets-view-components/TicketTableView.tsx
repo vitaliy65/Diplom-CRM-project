@@ -10,6 +10,7 @@ import {
   selectTicketsRowsPerPage,
   setCurrentPage,
   setRowsPerPage,
+  deleteTicket,
 } from "@/store/slices/tickets-slice";
 import { selectMasters } from "@/store/slices/users-slice";
 import { selectServices } from "@/store/slices/services-slice";
@@ -17,6 +18,7 @@ import type { ViewType } from "@/static/MenuItems";
 import { toFullDateTime } from "@/lib/time";
 import type { Ticket } from "@/lib/types";
 import ShowTablePage from "@/components/static/ShowTablePage";
+import { toast } from "sonner";
 
 // Статичный порядок отображения полей (ключей тикета) в таблице
 const TICKET_COLUMNS: Array<keyof Ticket> = [
@@ -164,12 +166,27 @@ export default function TicketTableView({ onRowClick }: TicketTableViewProps) {
     return { row, ticketId: ticket.id };
   });
 
+  const handleDeleteRows = async (rowIndices: number[]) => {
+    const ids = rowIndices
+      .map((idx) => data[idx]?.ticketId)
+      .filter((id): id is string => Boolean(id));
+    if (ids.length === 0) return;
+    const results = await Promise.allSettled(
+      ids.map((id) => dispatch(deleteTicket(id)).unwrap()),
+    );
+    const failed = results.filter((r) => r.status === "rejected").length;
+    const succeeded = ids.length - failed;
+    if (succeeded > 0) toast.success(`Видалено заявок: ${succeeded}`);
+    if (failed > 0) toast.error(`Не вдалося видалити: ${failed}`);
+  };
+
   return (
     <>
       <TableViewBox
         headers={headers}
         data={data.map((d) => d.row)}
         onRowClick={(idx: number) => onRowClick(data[idx]?.ticketId)}
+        onDeleteRows={handleDeleteRows}
       />
       <ShowTablePage
         totalRows={totalRows}

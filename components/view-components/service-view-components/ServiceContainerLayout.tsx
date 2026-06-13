@@ -11,6 +11,7 @@ import {
   setRowsPerPage,
   selectServices,
   setFilteredServices,
+  deleteService,
 } from "@/store/slices/services-slice";
 import TopViewButtons from "@/components/buttons/TopViewButtons";
 import ShowTablePage from "@/components/static/ShowTablePage";
@@ -21,6 +22,7 @@ import { EditServiceDialog } from "./EditServiceDialog";
 import { useEffect, useState } from "react";
 import { servicesExportConfig } from "@/lib/csv/Exportconfigs";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 // порядок отображения полей таблицы сервисов
 const SERVICE_COLUMNS: Array<keyof Service> = [
@@ -79,6 +81,20 @@ export default function ServiceContainerLayout() {
     if (service) setEditingService(service);
   };
 
+  const handleDeleteRows = async (rowIndices: number[]) => {
+    const ids = rowIndices
+      .map((idx) => data[idx]?.serviceId)
+      .filter((id): id is string => Boolean(id));
+    if (ids.length === 0) return;
+    const results = await Promise.allSettled(
+      ids.map((id) => dispatch(deleteService(id)).unwrap()),
+    );
+    const failed = results.filter((r) => r.status === "rejected").length;
+    const succeeded = ids.length - failed;
+    if (succeeded > 0) toast.success(`Видалено сервісів: ${succeeded}`);
+    if (failed > 0) toast.error(`Не вдалося видалити: ${failed}`);
+  };
+
   return (
     <div className="container-layout">
       <TopViewButtons
@@ -95,6 +111,7 @@ export default function ServiceContainerLayout() {
         headers={headers}
         data={data.map((d) => d.row)}
         onRowClick={(idx: number) => handleRowClick(data[idx]?.serviceId)}
+        onDeleteRows={handleDeleteRows}
       />
       <ShowTablePage
         totalRows={totalRows}
