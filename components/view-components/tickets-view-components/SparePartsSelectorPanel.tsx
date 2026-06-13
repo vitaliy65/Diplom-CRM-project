@@ -33,7 +33,7 @@ export function SparePartsSelectorPanel({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: -340, opacity: 0 }}
       transition={{ type: "spring", damping: 28, stiffness: 280, delay: 0.04 }}
-      className={`w-[300px] shrink-0 flex flex-col rounded-xl border border-border bg-background shadow-xl overflow-hidden self-stretch ${isMobile ? "w-full rounded-none!" : ""}`}
+      className={`md:w-[300px] w-full shrink-0 flex flex-col rounded-xl border border-border bg-background shadow-xl overflow-hidden self-stretch ${isMobile ? "w-full rounded-none!" : ""}`}
       style={{ zIndex: 8 }}
     >
       {/* Header */}

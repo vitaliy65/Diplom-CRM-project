@@ -97,11 +97,13 @@ export function useCreateTicketDialogHook(
   );
 
   const handlePartQuantityChange = React.useCallback(
-    (partId: string, value: string) => {
-      let numericValue = parseInt(value.replace(/\D/g, ""), 10);
+    (partId: string, value: number) => {
+      let numericValue = Math.floor(Number(value));
       const part = spareParts.find((p) => p.id === partId);
+
       if (Number.isNaN(numericValue) || numericValue < 1) numericValue = 1;
       if (part && numericValue > part.count) numericValue = part.count;
+
       setFormData((prev) => {
         const usedParts = Array.isArray(prev?.usedParts) ? prev.usedParts : [];
         return {
