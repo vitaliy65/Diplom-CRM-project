@@ -73,7 +73,7 @@ export function CreateTicketDialog({ clients }: { clients: Client[] }) {
               className={`fixed inset-0 z-50 flex items-center justify-center pointer-events-none`}
             >
               <div
-                className={`flex items-stretch gap-2 pointer-events-auto h-screen w-full md:max-h-[90vh]`}
+                className={`flex items-stretch gap-2 pointer-events-auto h-screen w-full md:w-md md:h-[90vh]`}
               >
                 {/* Spare parts panel */}
                 {!needParts ? (
@@ -228,7 +228,7 @@ export function CreateTicketDialog({ clients }: { clients: Client[] }) {
                             type="button"
                             variant="ghost"
                             onClick={handleClose}
-                            className="w-full sm:w-auto"
+                            className="w-full sm:w-auto border-border border cursor-pointer"
                           >
                             Скасувати
                           </Button>

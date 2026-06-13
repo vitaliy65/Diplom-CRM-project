@@ -123,7 +123,7 @@ export default function TopViewButtons<T>({
               onClearSort={clearSort}
             />
           </div>
-          <div className="flex w-fit h-full gap-4 max-md:gap-2">
+          <div className="flex max-md:w-full h-full gap-4 max-md:gap-2">
             <ExportButton selector={exportSelector} options={exportOptions} />
             {ChildrenCreateDialog}
           </div>

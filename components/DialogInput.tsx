@@ -6,6 +6,7 @@ interface DialogInputI {
   name: string;
   label: string;
   value: string | number;
+  type?: string;
   placeholder?: string;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -26,6 +27,7 @@ export default function DialogInput(props: DialogInputI) {
         onChange={props.onChange}
         className="bg-secondary border-border focus:border-primary/50 inset-shadow-sm"
         required
+        type={props.type}
       />
     </div>
   );
