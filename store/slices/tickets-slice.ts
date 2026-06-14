@@ -1,4 +1,8 @@
-import { createAsyncThunk, createSelector, createSlice } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSelector,
+  createSlice,
+} from "@reduxjs/toolkit";
 import {
   addDoc,
   collection,
@@ -228,20 +232,9 @@ export const deleteTicket = createAsyncThunk(
       return rejectWithValue("Заявку не знайдено.");
     }
 
-    const ctx = getTicketContext(state);
-    const stockError = await commitStockDeltas(
-      ctx.storage,
-      existing.usedParts ?? [],
-      [],
-    );
-    if (stockError) {
-      return rejectWithValue(stockError);
-    }
-
     try {
       await deleteDoc(doc(db, "tickets", ticketId));
     } catch {
-      await commitStockDeltas(ctx.storage, [], existing.usedParts ?? []);
       return rejectWithValue("Не вдалося видалити заявку.");
     }
   },

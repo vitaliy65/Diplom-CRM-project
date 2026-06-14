@@ -5,6 +5,7 @@ import { createTicketSchema } from "@/lib/validations/schemas";
 import { parseWithSchema } from "@/lib/validations/parse";
 import { createTicket } from "@/store/slices/tickets-slice";
 import { toast } from "sonner";
+import { updateSparePartQuantity } from "@/store/slices/storage-slice";
 
 export function useCreateTicketDialogHook(
   clients: { id: string; name: string; phone: string }[],
@@ -120,9 +121,37 @@ export function useCreateTicketDialogHook(
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+
+      // Ensure at least one service is selected
+      if (!Array.isArray(formData.services) || formData.services.length < 1) {
+        toast.error("Потрібно вибрати хоча б одну послугу");
+        return;
+      }
+
       const parsed = parseWithSchema(createTicketSchema, formData);
       if (!parsed.success) {
         toast.error(parsed.message);
+        return;
+      }
+
+      // Decrease spare part counts
+      try {
+        const usedParts = Array.isArray(formData.usedParts)
+          ? formData.usedParts
+          : [];
+        for (const part of usedParts) {
+          if (part.quantity > 0) {
+            await dispatch(
+              updateSparePartQuantity({
+                id: part.id,
+                amount: part.quantity,
+                action: "decrease",
+              }),
+            );
+          }
+        }
+      } catch (err) {
+        toast.error("Не вдалось оновити залишки запчастин.");
         return;
       }
 

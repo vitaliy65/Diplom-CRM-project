@@ -7,6 +7,7 @@ import {
   updateDoc,
   deleteDoc,
   serverTimestamp,
+  increment,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "@/lib/firebase";
 import type { RootState } from "@/store";
@@ -137,6 +138,41 @@ export const deleteSparePart = createAsyncThunk(
   },
 );
 
+// More descriptive prop type for the action, for better clarity and maintainability
+export interface UpdateSparePartQuantityPayload {
+  id: SpareParts["id"];
+  amount: number;
+  action: "decrease" | "increase";
+}
+
+export const updateSparePartQuantity = createAsyncThunk(
+  "storage/updateSparePartQuantity",
+  async (
+    payload: UpdateSparePartQuantityPayload,
+    { getState, rejectWithValue },
+  ) => {
+    const { id, amount, action } = payload;
+
+    if (!db || !isFirebaseConfigured) {
+      return rejectWithValue("Firebase не налаштований.");
+    }
+
+    const role = (getState() as RootState).auth.user?.role;
+    if (!canManageStorage(role)) {
+      return rejectWithValue(
+        "Недостатньо прав для зміни кількості запчастини.",
+      );
+    }
+    try {
+      await updateDoc(doc(db, "storage", id), {
+        count: action === "decrease" ? increment(-amount) : increment(amount),
+      });
+    } catch (err) {
+      return rejectWithValue("Не вдалося змінити кількість запчастини.");
+    }
+  },
+);
+
 const storageSlice = createSlice({
   name: "storage",
   initialState,
@@ -200,6 +236,11 @@ const storageSlice = createSlice({
       .addCase(deleteSparePart.rejected, (state, action) => {
         state.error =
           (action.payload as string) || "Помилка видалення запчастини.";
+      })
+      .addCase(updateSparePartQuantity.rejected, (state, action) => {
+        state.error =
+          (action.payload as string) ||
+          "Помилка зменшення кількості запчастини.";
       });
   },
 });

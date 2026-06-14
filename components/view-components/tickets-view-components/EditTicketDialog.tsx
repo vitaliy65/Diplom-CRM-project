@@ -1,184 +1,46 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { AnimatePresence, motion } from "framer-motion";
-import { updateTicket } from "@/store/slices/tickets-slice";
-import { editTicketPanelSchema } from "@/lib/validations/schemas";
-import { parseWithSchema } from "@/lib/validations/parse";
-import { enrichUsedParts } from "@/lib/storage-stock";
-import { selectStorage } from "@/store/slices/storage-slice";
-import { getStatusOptionsForSelect } from "@/lib/ticket-status";
-import { computeSlaViolation } from "@/lib/sla";
-import { selectCurrentUser } from "@/store/slices/auth-slice";
-import { statusLabels } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import type { Ticket } from "@/lib/types";
-import { selectMasters } from "@/store/slices/users-slice";
 import { WrenchIcon, PackageIcon, X } from "lucide-react";
 import { ServicesSelectorPanel } from "./ServicesSelectorPanel";
 import { SparePartsSelectorPanel } from "./SparePartsSelectorPanel";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { getStatusOptionsForSelect } from "@/lib/ticket-status";
+import { computeSlaViolation } from "@/lib/sla";
+import { statusLabels } from "@/lib/types";
+import { useEditTicketDialog } from "@/hooks/use-edit-ticket";
 
 type EditTicketDialogProps = {
-  editingTicket: Ticket | null;
-  setEditingTicket: (ticket: Ticket | null) => void;
+  editingTicket: any;
+  setEditingTicket: (ticket: any) => void;
   saving: boolean;
 };
-
-const emptyTicketFields: Omit<Ticket, "id" | "isEmailDelivered"> = {
-  clientId: "",
-  clientName: "",
-  clientPhone: "",
-  clientEmail: "",
-  device: "",
-  problem: "",
-  status: "received",
-  masterId: "",
-  masterName: "",
-  createdAt: "",
-  readyAt: "",
-  slaViolation: false,
-  comments: [],
-  services: [],
-  usedParts: [],
-};
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function EditTicketDialog({
   editingTicket,
   setEditingTicket,
   saving,
 }: EditTicketDialogProps) {
-  const dispatch = useAppDispatch();
-  const masters = useAppSelector(selectMasters);
-  const currentUser = useAppSelector(selectCurrentUser);
-  const storage = useAppSelector(selectStorage);
-  const isMobile = useIsMobile();
-
-  const [formData, setFormData] =
-    useState<Omit<Ticket, "id" | "isEmailDelivered">>(emptyTicketFields);
-  const [showServices, setShowServices] = useState(false);
-  const [showParts, setShowParts] = useState(false);
-
-  // ── Sync form when ticket changes ──────────────────────────────────────
-
-  useEffect(() => {
-    if (editingTicket) {
-      const { id, ...rest } = editingTicket;
-      setFormData({ ...emptyTicketFields, ...rest });
-    } else {
-      setFormData(emptyTicketFields);
-      setShowServices(false);
-      setShowParts(false);
-    }
-  }, [editingTicket]);
-
-  // ── Generic field change ───────────────────────────────────────────────
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
-  ) => {
-    const { name, value, type } = e.target;
-    if (type === "checkbox") {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: (e.target as HTMLInputElement).checked,
-      }));
-    } else if (name === "masterId") {
-      const selectedMaster = masters.find((m) => m.id === value);
-      setFormData((prev) => ({
-        ...prev,
-        masterId: value,
-        masterName: selectedMaster ? selectedMaster.name : "",
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  // ── Services handlers ──────────────────────────────────────────────────
-
-  const handleToggleService = useCallback((id: string) => {
-    setFormData((prev) => {
-      const already = prev.services.includes(id);
-      return {
-        ...prev,
-        services: already
-          ? prev.services.filter((s) => s !== id)
-          : [...prev.services, id],
-      };
-    });
-  }, []);
-
-  // ── Spare parts handlers ───────────────────────────────────────────────
-
-  const handleTogglePart = useCallback((id: string, name: string) => {
-    setFormData((prev) => {
-      const exists = prev.usedParts.find((p) => p.id === id);
-      return {
-        ...prev,
-        usedParts: exists
-          ? prev.usedParts.filter((p) => p.id !== id)
-          : [...prev.usedParts, { id, name, quantity: 1 }],
-      };
-    });
-  }, []);
-
-  const handlePartQuantityChange = useCallback(
-    (id: string, quantity: number) => {
-      setFormData((prev) => ({
-        ...prev,
-        usedParts: prev.usedParts.map((p) =>
-          p.id === id ? { ...p, quantity } : p,
-        ),
-      }));
-    },
-    [],
-  );
-
-  // ── Submit ─────────────────────────────────────────────────────────────
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingTicket) return;
-    const panelPayload = {
-      status: formData.status,
-      masterId: formData.masterId || null,
-      masterName: formData.masterName,
-      services: formData.services,
-      usedParts: enrichUsedParts(formData.usedParts, storage),
-    };
-
-    const parsed = parseWithSchema(editTicketPanelSchema, panelPayload);
-    if (!parsed.success) {
-      toast.error(parsed.message);
-      return;
-    }
-
-    const result = await dispatch(
-      updateTicket({ id: editingTicket.id, data: parsed.data }),
-    );
-    if (updateTicket.fulfilled.match(result)) {
-      toast.success("Тікет оновлено");
-      setEditingTicket(null);
-    } else {
-      toast.error(
-        (result.payload as string) || "Помилка під час оновлення тікету",
-      );
-    }
-  };
-
-  const handleClose = () => setEditingTicket(null);
-
-  // ─── Render ──────────────────────────────────────────────────────────────
+  const {
+    formData,
+    showServices,
+    showParts,
+    masters,
+    currentUser,
+    isMobile,
+    handleChange,
+    handleToggleService,
+    handleTogglePart,
+    handlePartQuantityChange,
+    handleSubmit,
+    handleClose,
+    setShowServices,
+    setShowParts,
+  } = useEditTicketDialog({
+    editingTicket,
+    setEditingTicket,
+    saving,
+  });
 
   return (
     <AnimatePresence>
@@ -250,7 +112,7 @@ export function EditTicketDialog({
                         {getStatusOptionsForSelect(
                           editingTicket.status,
                           currentUser?.role,
-                        ).map((s) => (
+                        ).map((s: string) => (
                           <option key={s} value={s}>
                             {statusLabels[s]}
                           </option>
@@ -274,7 +136,7 @@ export function EditTicketDialog({
                         onChange={handleChange}
                       >
                         <option value="">Оберіть майстра</option>
-                        {masters.map((master) => (
+                        {masters.map((master: any) => (
                           <option key={master.id} value={master.id}>
                             {master.name}
                           </option>
@@ -313,7 +175,9 @@ export function EditTicketDialog({
                       {/* Services toggle */}
                       <button
                         type="button"
-                        onClick={() => setShowServices((prev) => !prev)}
+                        onClick={() =>
+                          setShowServices((prev: boolean) => !prev)
+                        }
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
                           showServices
                             ? "border-primary bg-primary/5 text-primary"
@@ -337,7 +201,7 @@ export function EditTicketDialog({
                       {/* Spare parts toggle */}
                       <button
                         type="button"
-                        onClick={() => setShowParts((prev) => !prev)}
+                        onClick={() => setShowParts((prev: boolean) => !prev)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
                           showParts
                             ? "border-primary bg-primary/5 text-primary"
@@ -382,7 +246,7 @@ export function EditTicketDialog({
                 <ServicesSelectorPanel
                   selectedIds={formData.services}
                   onToggle={handleToggleService}
-                  onClose={() => setShowServices((prev) => !prev)}
+                  onClose={() => setShowServices((prev: boolean) => !prev)}
                 />
               )}
 
@@ -392,7 +256,7 @@ export function EditTicketDialog({
                   selectedParts={formData.usedParts}
                   onToggle={handleTogglePart}
                   onQuantityChange={handlePartQuantityChange}
-                  onClose={() => setShowParts((prev) => !prev)}
+                  onClose={() => setShowParts((prev: boolean) => !prev)}
                 />
               )}
             </div>
