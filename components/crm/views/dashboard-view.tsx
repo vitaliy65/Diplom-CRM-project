@@ -27,7 +27,10 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectTickets } from "@/store/slices/tickets-slice";
 import { selectClients } from "@/store/slices/clients-slice";
 import { selectMasters } from "@/store/slices/users-slice";
+import { selectServices } from "@/store/slices/services-slice";
+import { selectStorage } from "@/store/slices/storage-slice";
 import { StatCard } from "@/components/view-components/dashboard-view-components/StatCard";
+import { EarnReport } from "@/components/view-components/dashboard-view-components/EarnReport";
 import { ActivityItem } from "@/components/view-components//dashboard-view-components/ActivityItem";
 import { Ticket } from "@/lib/types";
 import { getWeeklyData } from "@/lib/utils";
@@ -137,6 +140,8 @@ export function DashboardView() {
   const tickets = useAppSelector(selectTickets) as Ticket[];
   const clients = useAppSelector(selectClients);
   const masters = useAppSelector(selectMasters);
+  const services = useAppSelector(selectServices);
+  const storage = useAppSelector(selectStorage);
   const router = useRouter();
   const dispatch = useAppDispatch();
 
@@ -248,6 +253,9 @@ export function DashboardView() {
             dotClass="bg-glow-red dot-glow-red"
           />
         </div>
+
+        {/* ── Earn Report ───────────────────────────────────────────── */}
+        <EarnReport tickets={tickets} services={services} storage={storage} />
 
         {/* ── Area Chart ────────────────────────────────────────────── */}
         <motion.div
