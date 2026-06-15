@@ -16,7 +16,7 @@ import { selectMasters } from "@/store/slices/users-slice";
 import { selectServices } from "@/store/slices/services-slice";
 import type { ViewType } from "@/static/MenuItems";
 import { toFullDateTime } from "@/lib/time";
-import type { Ticket } from "@/lib/types";
+import type { Ticket, Comment } from "@/lib/types";
 import ShowTablePage from "@/components/static/ShowTablePage";
 import { toast } from "sonner";
 
@@ -101,6 +101,34 @@ export default function TicketTableView({ onRowClick }: TicketTableViewProps) {
         };
       }
 
+      // comments: Comment[] → показує кількість та авторів коментарів
+      if (key === "comments" && Array.isArray(value) && value.length > 0) {
+        // Відображаємо label "N коментарів", список авторів у tooltip
+        const comments = value as Comment[];
+        const authorsCount: Record<string, number> = {};
+        comments.forEach((c) => {
+          if (c.authorName) {
+            authorsCount[c.authorName] = (authorsCount[c.authorName] ?? 0) + 1;
+          }
+        });
+        const authorsTooltip = Object.entries(authorsCount)
+          .map(([author, count]) => `${author}: ${count}`)
+          .join(", ");
+
+        return {
+          text: `${comments.length} коментар${comments.length === 1 ? "" : comments.length < 5 ? "і" : "ів"}`,
+          obj: authorsTooltip
+            ? [
+                {
+                  labelText: authorsTooltip,
+                  id: ticket.id + "-comments",
+                  viewType: null,
+                },
+              ]
+            : undefined,
+        };
+      }
+
       // services: string[] → services[]
       if (key === "services" && Array.isArray(value)) {
         const obj: { labelText: string; id: string; viewType: ViewType }[] = (
@@ -152,7 +180,7 @@ export default function TicketTableView({ onRowClick }: TicketTableViewProps) {
       }
 
       // createdAt / readyAt → toFullDateTime
-      if (key === "createdAt" || (key === "readyAt" && value)) {
+      if ((key === "createdAt" || key === "readyAt") && value) {
         return {
           text: toFullDateTime(value as string),
         };

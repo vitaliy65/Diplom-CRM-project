@@ -1,14 +1,9 @@
 import { ViewType } from "@/static/MenuItems";
 import { useAppDispatch } from "@/store/hooks";
-import { setSelectedClientId } from "@/store/slices/selected-client-slice";
-import { setSelectedPartId } from "@/store/slices/selected-parts-slice";
-import { setSelectedServiceId } from "@/store/slices/selected-service-slice";
 import { setActiveView, setSelectedId } from "@/store/slices/view-slice";
 import { useRouter } from "next/navigation";
 import { statusLabels, TicketStatus } from "@/lib/types";
 import { motion } from "framer-motion";
-import { setSelectedMasterId } from "@/store/slices/selected-master-slice";
-import { setSelectedTicketId } from "@/store/slices/selected-ticket-slice";
 import { useEffect, useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -119,11 +114,12 @@ function RenderObjLabel({
           className="table-link text-sm px-2 py-1 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
-            dispatch(setActiveView(viewType));
-            dispatch(setSelectedId(id));
+            if (viewType) {
+              dispatch(setActiveView(viewType));
+              dispatch(setSelectedId(id));
 
-            // Добавить id в query (вручную с строкой, чтобы соответствовать типу)
-            router.push(`./${viewType}?id=${encodeURIComponent(id)}`);
+              router.push(`./${viewType}?id=${encodeURIComponent(id)}`);
+            }
           }}
         >
           {labelText}
@@ -252,7 +248,7 @@ export default function TableViewBox({
   const [deleting, setDeleting] = useState(false);
 
   // Сигнатура содержимого таблицы. При смене страницы / фильтра / после
-  // удаления данные меняются — сбрасываем выбор, чтобы индексы не «протухали».
+  // удаления данные меняются — сбрасываем выбор.
   const dataSignature = useMemo(
     () =>
       data
