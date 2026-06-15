@@ -56,6 +56,8 @@ NEXT_PUBLIC_FIREBASE_APP_ID=1:512264180504:web:3dd34ea7b555fa727b046d
 GMAIL_USER=vurbin.official@gmail.com
 GMAIL_APP_PASSWORD=pwqt ypid dmxu vxxr
 ```
+gmail: asd@gmail.com
+password: 123123
 
 ---
 
