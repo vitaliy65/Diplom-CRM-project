@@ -51,7 +51,6 @@ export function RegisterScreen({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("master");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -135,31 +134,6 @@ export function RegisterScreen({
                   required
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="role" className="text-sm text-foreground">
-                Роль
-              </Label>
-              <Select
-                value={role}
-                onValueChange={(v) => setRole(v as UserRole)}
-              >
-                <SelectTrigger
-                  id="role"
-                  className="bg-secondary/50 border-border/50 focus:border-primary/50 h-11 w-full [&>svg]:hidden pl-10 relative"
-                >
-                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <SelectValue placeholder="Оберіть роль" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(roleLabels) as UserRole[]).map((r) => (
-                    <SelectItem key={r} value={r}>
-                      {roleLabels[r]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
